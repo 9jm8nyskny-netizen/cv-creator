@@ -177,6 +177,27 @@ details.sec[open]>summary .chev{transform:rotate(90deg)}
 .open-code{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
 .open-code input{border:1px solid var(--line);border-radius:8px;padding:5px 9px;min-width:0;width:min(240px,60vw);background:var(--panel)}
 @media (max-width:900px){.cloud span{display:none}}
+.tab{font-size:13px;padding:8px 4px}
+.lib-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+.lib-head h2{margin:0;font-size:17px}
+.lib-head p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
+.lib-link{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;background:var(--accent-soft);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12.5px}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.lcard{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px;display:grid;gap:8px}
+.lcard.current{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.lopen{border:0;padding:0;background:none;cursor:pointer;display:block;width:100%}
+.lopen:hover .mini{border-color:var(--accent)}
+.lmeta{display:grid;gap:1px;min-width:0}
+.lmeta b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lmeta span{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-height:1.2em}
+.lmeta small{font-size:11.5px;color:var(--muted)}
+.lacts{display:flex;gap:6px;flex-wrap:wrap}
+.lacts .btn{flex:1;justify-content:center}
+.lib-ph{display:grid;place-content:center;justify-items:center;gap:6px;background:color-mix(in srgb,var(--c) 12%,#fff)}
+.lib-ph span{width:64px;height:64px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-size:22px;font-weight:700}
+.lib-ph small{font-size:11px;color:var(--muted)}
+.lib-empty{grid-column:1/-1;border:1.5px dashed var(--line);border-radius:12px;padding:28px 16px;text-align:center;display:grid;gap:6px;color:var(--muted)}
+.lib-empty b{color:var(--fg);font-size:15px}
 .avatar-ring{display:inline-grid;place-items:center;flex:none;padding:2px;border-radius:50%;background:conic-gradient(from 200deg,#f6a623,#e8743b,#2b8577,#1f3b57,#f6a623)}
 .avatar-ring img{width:40px;height:40px;border-radius:50%;object-fit:cover;display:block;border:2px solid var(--panel)}
 .avatar-ring.big{padding:3px}
@@ -408,7 +429,7 @@ details.sec[open]>summary .chev{transform:rotate(90deg)}
       <button class="btn small" type="button" id="btnExport">تصدير البيانات (JSON)</button>
       <label class="btn small" for="importFile" style="cursor:pointer">استيراد بيانات</label>
       <input type="file" id="importFile" accept=".json,application/json" hidden>
-      <button class="btn small danger" type="button" id="btnClear">سيرة جديدة فارغة</button>
+      <button class="btn small" type="button" id="btnClear">+ سيرة جديدة</button>
     </div>
     <div class="topbar-in cloud-row" id="cloudRow" hidden>
       <span class="hint">رمز سيرتك: <code id="cvCode" dir="ltr"></code></span>
@@ -425,10 +446,24 @@ details.sec[open]>summary .chev{transform:rotate(90deg)}
 <main class="layout" id="layout" data-pane="edit">
   <section class="editor" aria-label="المحرر">
     <div class="tabs" role="tablist">
-      <button class="tab" role="tab" id="tab-ready" aria-selected="true" data-tab="ready">قوالب جاهزة</button>
+      <button class="tab" role="tab" id="tab-lib" aria-selected="false" data-tab="lib">سيري <span class="badge" id="tabLibCount">0</span></button>
+      <button class="tab" role="tab" id="tab-ready" aria-selected="true" data-tab="ready">جاهزة</button>
       <button class="tab" role="tab" id="tab-content" aria-selected="false" data-tab="content">المحتوى</button>
       <button class="tab" role="tab" id="tab-design" aria-selected="false" data-tab="design">القالب</button>
       <button class="tab" role="tab" id="tab-ats" aria-selected="false" data-tab="ats">فحص ATS <span class="badge" id="tabScore">0</span></button>
+    </div>
+
+    <div id="panel-lib" role="tabpanel" hidden>
+      <div class="lib-head">
+        <div><h2>سيري المحفوظة</h2><p id="libCount"></p></div>
+        <button type="button" class="btn primary" id="btnLibNew">+ سيرة جديدة</button>
+      </div>
+      <p class="ready-intro">كل سيرة تنشئها تُحفظ هنا تلقائياً مع كل تعديل، ومعها نسخة في السحابة.</p>
+      <div class="lib-link" id="libLinkBox" hidden>
+        <span>افتح كل سيرك من جوالك أو أي جهاز آخر برابط واحد</span>
+        <button type="button" class="btn small" id="btnLibLink">نسخ رابط مكتبتي</button>
+      </div>
+      <div class="lib-grid" id="libGrid"></div>
     </div>
 
     <div id="panel-ready" role="tabpanel">
@@ -697,10 +732,11 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 
 let state=null;
 try{const raw=localStorage.getItem(KEY); if(raw) state=JSON.parse(raw);}catch(e){}
-if(!state||!state.p) state=clone(SAMPLE_EN);
+let pristine=false;
+if(!state||!state.p){state=clone(SAMPLE_EN);pristine=true}
 state=norm(state);
 
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){};if(typeof touchLib==="function")touchLib()}
 function toast(msg,undo){
   const t=$("#toast");t.innerHTML="";const sp=document.createElement("span");sp.textContent=msg;t.appendChild(sp);
   if(undo){const b=document.createElement("button");b.type="button";b.textContent="تراجع";b.onclick=()=>{undo();t.classList.remove("show")};t.appendChild(b)}
@@ -1008,7 +1044,7 @@ function cloudSchedule(){
   if(!db)return;clearTimeout(ctmr);cloudStatus("saving","جارٍ الحفظ…");
   ctmr=setTimeout(()=>{
     const data=JSON.parse(JSON.stringify(state));data.updatedAt=firebase.firestore.FieldValue.serverTimestamp();
-    db.collection("cvs").doc(cvId).set(data).then(()=>cloudStatus("ok","محفوظة في السحابة")).catch(()=>cloudStatus("err","تعذّر الحفظ في السحابة"));
+    db.collection("cvs").doc(cvId).set(data).then(()=>{cloudStatus("ok","محفوظة في السحابة");libSync()}).catch(()=>cloudStatus("err","تعذّر الحفظ في السحابة"));
   },1500);
 }
 function cloudOpen(id){
@@ -1023,7 +1059,7 @@ function cloudOpen(id){
 
 /* ---------- updates ---------- */
 let tmr;
-function schedule(){clearTimeout(tmr);tmr=setTimeout(()=>{renderCV();renderATS();save();cloudSchedule()},120)}
+function schedule(){pristine=false;clearTimeout(tmr);tmr=setTimeout(()=>{renderCV();renderATS();save();cloudSchedule()},120)}
 function refreshAll(sync=true){renderReady();renderEditor();renderDesign();renderCV();renderATS();$("#jd").value=state.jd;save();if(sync)cloudSchedule()}
 
 document.addEventListener("input",e=>{
@@ -1061,12 +1097,14 @@ $("#panel-content").addEventListener("click",e=>{
   if(b.dataset.act==="add"){const items=$("#body-"+key).querySelectorAll(".item");items[items.length-1]?.querySelector("input")?.focus()}
   schedule();
 });
-document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
-  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",String(x===t)));
-  ["ready","content","design","ats"].forEach(id=>$("#panel-"+id).hidden=id!==t.dataset.tab);
-  if(t.dataset.tab==="design") renderDesign();
-  sizeMinis($("#panel-"+t.dataset.tab));
-}));
+function selectTab(name){
+  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",String(x.dataset.tab===name)));
+  ["lib","ready","content","design","ats"].forEach(id=>$("#panel-"+id).hidden=id!==name);
+  if(name==="design") renderDesign();
+  if(name==="lib") renderLib();
+  sizeMinis($("#panel-"+name));
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>selectTab(t.dataset.tab)));
 $("#panel-design").addEventListener("click",e=>{
   const tp=e.target.closest("[data-tpl]"),sw=e.target.closest("[data-color]"),lg=e.target.closest("[data-lang]");
   if(tp){state.template=tp.dataset.tpl;const D=DESIGNS.find(d=>d.id===state.template);if(D)state.accent=D.accent;}
@@ -1106,10 +1144,11 @@ $("#readyFilter").addEventListener("click",e=>{
 });
 $("#readyGrid").addEventListener("click",e=>{
   const c=e.target.closest("[data-ready]");if(!c)return;
-  const r=READY.find(x=>x.id===c.dataset.ready),prev=clone(state),prevId=currentReady;
-  state=norm(r.data());currentReady=r.id;refreshAll();
+  const r=READY.find(x=>x.id===c.dataset.ready),prevId=cvId;
+  newCV(r.data());currentReady=r.id;renderReady();const newId=cvId;
   if(matchMedia("(max-width:900px)").matches) document.querySelector('.pane-switch [data-pane="preview"]').click();
-  toast(`حُمّلت سيرة «${r.ar}». عدّلها من تبويب المحتوى.`,()=>{state=prev;currentReady=prevId;refreshAll();toast("استُعيدت بياناتك السابقة")});
+  toast(`أُنشئت سيرة جديدة من «${r.ar}» وحُفظت في «سيري». عدّلها من تبويب المحتوى.`,()=>{
+    delCV(newId);if(prevId!==cvId){const d=docGet(prevId);if(d){state=d;setId(prevId);refreshAll(false)}}toast("أُلغيت السيرة الجديدة")});
 });
 $("#btnWord").addEventListener("click",()=>{
   const st=norm(clone(state));if(isDesign(st.template))st.template="classic";
@@ -1130,27 +1169,110 @@ $("#btnExport").addEventListener("click",()=>{
 });
 $("#importFile").addEventListener("change",e=>{
   const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.p) throw 0;state=norm(d);refreshAll();toast("استُوردت البيانات")}catch(err){toast("الملف غير صالح. اختر ملف JSON صدّرته من هذا التطبيق.")}};
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.p) throw 0;newCV(d,"استُوردت السيرة وحُفظت في «سيري»")}catch(err){toast("الملف غير صالح. اختر ملف JSON صدّرته من هذا التطبيق.")}};
   r.readAsText(f);e.target.value="";
 });
-let clearArm=false;
-$("#btnClear").addEventListener("click",e=>{
-  const b=e.currentTarget;
-  if(!clearArm){clearArm=true;b.textContent="اضغط مرة أخرى للتأكيد";setTimeout(()=>{clearArm=false;b.textContent="سيرة جديدة فارغة"},3000);return}
-  clearArm=false;b.textContent="سيرة جديدة فارغة";state=EMPTY();currentReady=null;setId(genId());refreshAll(false);
-  cloudStatus(db?"off":"off","سيرة جديدة");toast("بدأت سيرة جديدة برمز جديد. السيرة السابقة ما زالت محفوظة برمزها.");
-});
+$("#btnClear").addEventListener("click",()=>{newCV(null,"بدأت سيرة جديدة. سيرتك السابقة محفوظة في «سيري».");selectTab("content")});
 $("#btnLink").addEventListener("click",()=>copyText(location.href.split("#")[0]+"#"+cvId,"نُسخ رابط سيرتك. افتحه من أي جهاز لتكمل التعديل."));
 $("#btnOpenCode").addEventListener("click",()=>{const v=$("#openCode").value.trim();cloudOpen(v.includes("#")?v.split("#").pop():v)});
+
+/* ---------- My CVs library: every CV is kept in one place ---------- */
+const LIB_KEY="ats-cv-lib-v1",docKey=id=>"ats-cv-doc-"+id;
+let lib=null;try{lib=JSON.parse(localStorage.getItem(LIB_KEY)||"null")}catch(e){}
+if(!lib||!validId(lib.libId)||typeof lib.items!=="object") lib={libId:genId(),items:{}};
+function libStore(){try{localStorage.setItem(LIB_KEY,JSON.stringify(lib))}catch(e){}}
+function docGet(id){try{const r=localStorage.getItem(docKey(id));return r?norm(JSON.parse(r)):null}catch(e){return null}}
+function docPut(id,s){try{localStorage.setItem(docKey(id),JSON.stringify(s))}catch(e){
+  try{const c=clone(s);c.p.photo="";localStorage.setItem(docKey(id),JSON.stringify(c))}catch(e2){}}}
+const hasContent=s=>!!(s.p.name.trim()||s.p.title.trim()||s.summary.trim()||s.exp.some(e=>e.role||e.bullets));
+function touchLib(){
+  if(pristine||!lib||!cvId||!hasContent(state))return;
+  lib.items[cvId]={name:state.p.name,title:state.p.title,template:state.template,accent:state.accent,lang:state.lang,updated:Date.now()};
+  docPut(cvId,state);libStore();
+  if(!$("#panel-lib").hidden) renderLibSoon();
+  $("#tabLibCount").textContent=Object.keys(lib.items).length;
+}
+let lrt;function renderLibSoon(){clearTimeout(lrt);lrt=setTimeout(renderLib,400)}
+function libSync(){
+  if(!db)return;
+  db.collection("libraries").doc(lib.libId).set({items:lib.items,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+}
+function relTime(t){const m=Math.round((Date.now()-t)/60000);if(m<1)return"الآن";if(m<60)return`قبل ${m} دقيقة`;const h=Math.round(m/60);if(h<24)return`قبل ${h} ساعة`;const d=Math.round(h/24);return d===1?"أمس":`قبل ${d} يوم`}
+function renderLib(){
+  const ids=Object.keys(lib.items).sort((a,b)=>lib.items[b].updated-lib.items[a].updated);
+  $("#tabLibCount").textContent=ids.length;
+  $("#libCount").textContent=ids.length?`${ids.length} ${ids.length===1?"سيرة محفوظة":ids.length===2?"سيرتان محفوظتان":"سير محفوظة"}`:"";
+  $("#libLinkBox").hidden=!db;
+  if(!ids.length){$("#libGrid").innerHTML=`<div class="lib-empty"><b>لا توجد سير محفوظة بعد</b><span>ابدأ سيرة جديدة أو اختر سيرة من «قوالب جاهزة»، وستُحفظ هنا تلقائياً مع كل تعديل.</span></div>`;return}
+  $("#libGrid").innerHTML=ids.map(id=>{const it=lib.items[id],d=docGet(id),cur=id===cvId;
+    const prev=d?miniHTML(d):`<div class="mini lib-ph" style="--c:${it.accent||"#2b8577"}"><span>${initials(it.name)||"CV"}</span><small>محفوظة في السحابة</small></div>`;
+    return `<article class="lcard${cur?" current":""}" data-id="${id}">
+      ${cur?`<span class="ribbon" style="--rb:var(--accent)">مفتوحة الآن</span>`:""}
+      <button type="button" class="lopen" data-lib="open" data-id="${id}" aria-label="فتح ${esc(it.name||"سيرة")}">${prev}</button>
+      <div class="lmeta"><b>${esc(it.name||"سيرة بدون اسم")}</b><span>${esc(it.title||"")}</span>
+        <small>${TPL_NAME[it.template]||""} · ${it.lang==="ar"?"عربي":"English"} · ${relTime(it.updated)}</small></div>
+      <div class="lacts">
+        <button type="button" class="btn small" data-lib="open" data-id="${id}">${cur?"تحرير":"فتح"}</button>
+        <button type="button" class="btn small" data-lib="dup" data-id="${id}">نسخة</button>
+        <button type="button" class="btn small danger" data-lib="del" data-id="${id}">حذف</button>
+      </div></article>`}).join("");
+  sizeMinis($("#libGrid"));
+}
+function switchTo(id){
+  if(id===cvId){selectTab("content");return}
+  const d=docGet(id);
+  if(d){state=d;currentReady=null;setId(id);refreshAll(false);selectTab("content");toast(`فُتحت سيرة «${d.p.name||"بدون اسم"}»`)}
+  else if(db){cloudOpen(id);selectTab("content")}
+  else toast("هذه السيرة غير موجودة على هذا الجهاز");
+}
+function newCV(data,msg){
+  pristine=false;
+  state=norm(data?clone(data):EMPTY());currentReady=null;setId(genId());refreshAll(!!data);
+  if(msg) toast(msg);
+}
+function delCV(id){
+  delete lib.items[id];try{localStorage.removeItem(docKey(id))}catch(e){}
+  libStore();libSync();
+  if(db) db.collection("cvs").doc(id).delete().catch(()=>{});
+  if(id===cvId){const next=Object.keys(lib.items).sort((a,b)=>lib.items[b].updated-lib.items[a].updated)[0];
+    if(next){const d=docGet(next);if(d){state=d;setId(next);refreshAll(false)}else newCV()}else newCV()}
+  renderLib();
+}
+let delArm=null;
+$("#panel-lib").addEventListener("click",e=>{
+  const b=e.target.closest("[data-lib]");if(!b)return;const id=b.dataset.id,act=b.dataset.lib;
+  if(act==="open") switchTo(id);
+  if(act==="dup"){const d=docGet(id);if(!d){toast("افتح السيرة أولاً ثم انسخها");return}
+    d.p.name=d.p.name?d.p.name+(d.lang==="ar"?" (نسخة)":" (copy)"):"";newCV(d,"أُنشئت نسخة جديدة يمكنك تعديلها");renderLib()}
+  if(act==="del"){
+    if(delArm!==id){delArm=id;b.textContent="تأكيد الحذف؟";setTimeout(()=>{if(delArm===id){delArm=null;b.textContent="حذف"}},3000);return}
+    delArm=null;delCV(id);toast("حُذفت السيرة نهائياً");
+  }
+});
+$("#btnLibNew").addEventListener("click",()=>{newCV(null,"بدأت سيرة جديدة. ستظهر في «سيري» بمجرد أن تكتب اسمك.");selectTab("content")});
+$("#btnLibLink").addEventListener("click",()=>copyText(location.href.split("#")[0]+"#lib-"+lib.libId,"نُسخ رابط مكتبتك. افتحه من جوالك أو أي جهاز لترى كل سيرك."));
+function openLibrary(libId){
+  if(!db)return;
+  db.collection("libraries").doc(libId).get().then(snap=>{
+    if(!snap.exists){toast("لم تُعثر على المكتبة");return}
+    const items=snap.data().items||{};
+    Object.entries(items).forEach(([id,it])=>{if(!lib.items[id]||lib.items[id].updated<it.updated) lib.items[id]=it});
+    lib.libId=libId;libStore();libSync();renderLib();selectTab("lib");
+    toast(`فُتحت مكتبتك: ${Object.keys(items).length} سيرة`);
+    try{history.replaceState(null,"","#"+cvId)}catch(e){}
+  }).catch(()=>toast("تعذّر الاتصال بقاعدة البيانات"));
+}
 
 document.documentElement.dir="rtl";document.documentElement.lang="ar";
 const incoming=location.hash.slice(1);
 setId(cvId);
 refreshAll(false);
+selectTab(Object.keys(lib.items).length?"lib":"ready");
 if(db){
   $("#cloudRow").hidden=false;
   cloudStatus("ok","الحفظ السحابي مفعّل");
-  if(validId(incoming)&&incoming!==cvId) cloudOpen(incoming);
+  if(/^lib-[A-Za-z0-9]{20,40}$/.test(incoming)) openLibrary(incoming.slice(4));
+  else if(validId(incoming)&&incoming!==cvId) cloudOpen(incoming);
 }else{
   cloudStatus("off","محفوظة على هذا الجهاز");
 }
