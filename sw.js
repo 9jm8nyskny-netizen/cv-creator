@@ -1,6 +1,6 @@
 // Minimal service worker so the app can be installed to the home screen.
 // Network first; falls back to the cached shell when offline.
-const CACHE = "cv-creator-v4";
+const CACHE = "cv-creator-v5";
 const SHELL = ["./", "./index.html", "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", e => {

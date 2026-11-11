@@ -28,6 +28,7 @@
 }
 
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:14px;line-height:1.55}
 button,input,textarea,select{font:inherit;color:inherit}
@@ -209,6 +210,42 @@ details.sec[open]>summary .chev{transform:rotate(90deg)}
 .lib-ph small{font-size:11px;color:var(--muted)}
 .lib-empty{grid-column:1/-1;border:1.5px dashed var(--line);border-radius:12px;padding:28px 16px;text-align:center;display:grid;gap:6px;color:var(--muted)}
 .lib-empty b{color:var(--fg);font-size:15px}
+.bot-fab{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));inset-inline-end:calc(18px + env(safe-area-inset-left,0px));z-index:40;display:flex;align-items:center;gap:8px;
+  border:0;border-radius:30px;padding:12px 18px;background:linear-gradient(135deg,var(--accent),#1f3b57);color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgb(31 59 87 / .3)}
+.bot-fab svg{width:22px;height:22px}
+.bot-fab:hover{filter:brightness(1.08)}
+.bot-fab[aria-expanded="true"]{opacity:0;pointer-events:none}
+.bot-panel{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));inset-inline-end:calc(18px + env(safe-area-inset-left,0px));z-index:45;width:min(380px,calc(100vw - 32px));height:min(560px,calc(100vh - 110px));
+  display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 50px rgb(0 0 0 / .18);overflow:hidden;animation:botIn .2s ease-out}
+@keyframes botIn{from{transform:translateY(10px);opacity:.6}to{transform:none;opacity:1}}
+.bot-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(135deg,var(--accent),#1f3b57);color:#fff}
+.bot-head>div{display:grid;flex:1;min-width:0}
+.bot-head small{font-size:11.5px;opacity:.9;display:flex;align-items:center;gap:5px}
+.bot-head .dot{width:7px;height:7px;border-radius:50%;background:#7ef0a8;display:inline-block}
+.bot-head .icon-btn{background:#ffffff22;border-color:transparent;color:#fff}
+.bot-av{width:36px;height:36px;border-radius:50%;background:#ffffff26;display:grid;place-items:center;font-weight:700;font-size:12px;letter-spacing:.05em;flex:none}
+.bot-log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--panel-2)}
+.bmsg{max-width:88%;padding:9px 12px;border-radius:14px;line-height:1.65;font-size:13.5px;overflow-wrap:anywhere}
+.bmsg.bot{align-self:flex-start;background:var(--panel);border:1px solid var(--line);border-start-start-radius:4px}
+.bmsg.me{align-self:flex-end;background:var(--accent);color:#fff;border-start-end-radius:4px}
+.bmsg code{background:var(--accent-soft);color:var(--accent);padding:0 5px;border-radius:4px;direction:ltr;unicode-bidi:isolate}
+.bacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.bact{border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:4px 11px;font-size:12.5px;font-weight:600;cursor:pointer}
+.bact:hover{background:var(--accent);color:#fff}
+.bsugg{display:flex;flex-wrap:wrap;gap:6px}
+.bsugg button{border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--fg)}
+.bsugg button:hover{border-color:var(--accent);color:var(--accent)}
+.typing{display:flex;gap:4px;padding:12px 14px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:tdot 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes tdot{0%,60%,100%{opacity:.25}30%{opacity:1}}
+.bot-form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--panel)}
+.bot-form input{flex:1;min-width:0;border:1px solid var(--line);border-radius:22px;padding:9px 14px;background:var(--panel-2)}
+.bot-form input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.bot-form .btn{border-radius:50%;width:40px;height:40px;padding:0;justify-content:center}
+.bot-form svg{width:18px;height:18px}
+@media (max-width:600px){.bot-panel{inset-inline:0;bottom:0;width:100%;height:78vh;border-radius:18px 18px 0 0}.bot-fab span{display:none}.bot-fab{padding:14px}}
+@media print{.bot-fab,.bot-panel{display:none!important}}
 .avatar-ring{display:inline-grid;place-items:center;flex:none;padding:2px;border-radius:50%;background:conic-gradient(from 200deg,#f6a623,#e8743b,#2b8577,#1f3b57,#f6a623)}
 .avatar-ring img{width:40px;height:40px;border-radius:50%;object-fit:cover;display:block;border:2px solid var(--panel)}
 .avatar-ring.big{padding:3px}
@@ -543,6 +580,23 @@ details.sec[open]>summary .chev{transform:rotate(90deg)}
   </section>
 </main>
 <div class="toast" id="toast" role="status"></div>
+
+<button type="button" class="bot-fab" id="botFab" aria-expanded="false" aria-controls="botPanel">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg>
+  <span>المساعد</span>
+</button>
+<section class="bot-panel" id="botPanel" hidden aria-label="مساعد سيرتي">
+  <header class="bot-head">
+    <span class="bot-av">AI</span>
+    <div><b>مساعد سيرتي</b><small><i class="dot"></i> جاهز يجاوبك</small></div>
+    <button type="button" class="icon-btn" id="botClose" aria-label="إغلاق المساعد"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </header>
+  <div class="bot-log" id="botLog" aria-live="polite"></div>
+  <form class="bot-form" id="botForm">
+    <input id="botIn" autocomplete="off" placeholder="اكتب سؤالك عن التطبيق…" aria-label="سؤالك">
+    <button type="submit" class="btn primary" aria-label="إرسال"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button>
+  </form>
+</section>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -1292,6 +1346,112 @@ function renderGreeting(){
   $("#greetSub").textContent=n?`عندك ${n===1?"سيرة واحدة محفوظة":n===2?"سيرتان محفوظتان":n+" سير محفوظة"}. وش نسوي اليوم؟`:(morning?"بداية يوم جديد، خلنا نجهز سيرة تفتح لك الأبواب.":"وقت مناسب ترتب فيه سيرتك الذاتية بهدوء.");
 }
 setInterval(renderGreeting,60000);
+/* ---------- In-app assistant (offline knowledge base, no API key) ---------- */
+const BOT_KB=[
+ {k:["وش التطبيق","ما هو التطبيق","ايش التطبيق","عن التطبيق","فكرة التطبيق","وش يسوي","ماذا يفعل","what is","about app","نوع التطبيق","وش نوعه","تعريف"],
+  a:"«سيرتي» تطبيق لإنشاء سيرة ذاتية احترافية. فيه نوعان من القوالب: قوالب متوافقة مع أنظمة ATS للتقديم عبر بوابات التوظيف، وقوالب تصميم ملوّنة بصورة شخصية للإرسال المباشر. تكتب بياناتك مرة وتشوف السيرة تتحدّث فوراً، وتحفظ كل سيرك في مكان واحد، وتحمّلها PDF أو Word.",act:[["تصفح القوالب الجاهزة","tab:ready"],["ابدأ سيرة جديدة","new"]]},
+ {k:["ats","اي تي اس","انظمه تتبع","نظام تتبع","تتبع المتقدمين","يقرا السيره","يرفض السيره","فلتره"],
+  a:"ATS هي أنظمة تستخدمها الشركات لقراءة السير الذاتية وفرزها آلياً قبل ما يشوفها الموظف. هذه الأنظمة تقرأ النص بشكل أفضل لما تكون السيرة بعمود واحد، بدون صور أو جداول، وبعناوين أقسام معروفة. قوالب «ATS» في التطبيق مبنية بهذا الشكل بالضبط.",act:[["افحص سيرتي","tab:ats"]]},
+ {k:["الفرق بين","ملون","ملونه","تصميم","قوالب التصميم","عمودين","ايهما افضل","اي قالب","انسب قالب","افضل قالب"],
+  a:"استخدم **قالب ATS** إذا بتقدّم عبر موقع أو بوابة توظيف (مثل LinkedIn أو مواقع الشركات). واستخدم **قالب التصميم الملوّن** إذا بترسل السيرة مباشرة بالإيميل أو الواتساب أو تطبعها وتسلّمها باليد. تقدر تسوي نسخة من سيرتك بكل نوع من تبويب «سيري» ← «نسخة».",act:[["افتح القوالب","tab:design"]]},
+ {k:["قوالب جاهزه","جاهزه","سيره جاهزه","مثال","امثله","نموذج"],
+  a:"في تبويب «جاهزة» سير مكتوبة كاملة لمهن مختلفة (محاسب، مهندس برمجيات، ممرضة، موارد بشرية، مصممة جرافيك، مبيعات، خريج جديد…). اختر وحدة قريبة من مجالك، وتنحفظ كسيرة جديدة باسمك، وبعدها عدّل الأسماء والأرقام لتناسبك.",act:[["افتح السير الجاهزة","tab:ready"]]},
+ {k:["pdf","بي دي اف","تحميل","احمل","انزل","طباعه","اطبع","حفظ كملف"],
+  a:"اضغط زر **«تحميل PDF»** في الأعلى، وفي نافذة الطباعة اختر الوجهة **«حفظ كـ PDF»** ثم احفظ. الـ PDF الناتج نصه قابل للقراءة والبحث، وهذا اللي تحتاجه أنظمة ATS.",act:[["حمّل PDF الآن","pdf"]]},
+ {k:["الالوان ما تطلع","الالوان لا تظهر","ابيض","الخلفيه","بدون الوان","ما طلعت الالوان"],
+  a:"في نافذة الطباعة افتح **«مزيد من الإعدادات»** وفعّل خيار **«رسومات الخلفية» (Background graphics)**. بعدها تطلع ألوان القوالب الملوّنة في الـ PDF."},
+ {k:["رابط","التاريخ فوق","عنوان الصفحه","هيدر","الرابط يطلع"],
+  a:"التطبيق يمنع المتصفح من إضافة الرابط والتاريخ للـ PDF تلقائياً. لو ظهر عندك في متصفح معيّن، ألغِ خيار **«الرؤوس والتذييلات» (Headers and footers)** في نافذة الطباعة."},
+ {k:["word","وورد","doc","docx"],
+  a:"من زر **«المزيد»** في الأعلى اضغط **«تحميل Word»**. يطلع لك ملف Word مرتّب بعمود واحد ومتوافق مع ATS، تقدر تعدّله في Microsoft Word.",act:[["حمّل Word","word"]]},
+ {k:["صوره","صورتي","الصوره الشخصيه","اضيف صوره","photo"],
+  a:"من تبويب **«المحتوى»** افتح قسم **«الصورة والبيانات الإضافية»** واضغط «رفع صورة شخصية». التطبيق يقصّها ويصغّرها تلقائياً. الصورة تظهر في قوالب التصميم الملوّنة فقط، لأن أنظمة ATS ما تحب الصور.",act:[["افتح المحتوى","tab:content"]]},
+ {k:["اشرطه","شريط","نسبه المهاره","مستوى المهاره","بار","%"],
+  a:"في خانة المهارات أو اللغات اكتب نسبة بعد المهارة، مثل: `Excel 90%` أو `الإنجليزية 80%`. في قوالب التصميم تتحول لأشرطة مستوى، وفي قوالب ATS تظهر المهارة بدون النسبة."},
+ {k:["سيري","حفظ","احفظ","محفوظه","وين السير","مكان","مكتبه","قائمه السير","ضاعت"],
+  a:"كل سيرة تنشئها تنحفظ تلقائياً مع كل تعديل في تبويب **«سيري»**، على جهازك وفي السحابة. من هناك تقدر تفتح أي سيرة أو تسوي منها نسخة أو تحذفها.",act:[["افتح سيري","tab:lib"]]},
+ {k:["جهاز ثاني","جوالي","جوال","جهاز اخر","مزامنه","كمبيوتر","ابتوب","افتحها من"],
+  a:"في تبويب **«سيري»** اضغط **«نسخ رابط مكتبتي»** وافتح الرابط على جوالك أو أي جهاز. تظهر لك كل سيرك هناك وتكمل عليها.",act:[["انسخ رابط مكتبتي","liblink"]]},
+ {k:["احذف","حذف","مسح"],
+  a:"في تبويب **«سيري»** اضغط **«حذف»** تحت السيرة، ثم اضغط مرة ثانية للتأكيد. الحذف نهائي ويشمل النسخة السحابية.",act:[["افتح سيري","tab:lib"]]},
+ {k:["نسخه","انسخ","نسختين","لكل وظيفه","اكثر من سيره"],
+  a:"في تبويب **«سيري»** اضغط **«نسخة»** تحت أي سيرة. تنشأ نسخة مستقلة تعدّلها بدون ما تتأثر الأصلية، ومفيدة لو تبي سيرة مخصصة لكل وظيفة.",act:[["افتح سيري","tab:lib"]]},
+ {k:["جديده","ابدا","سيره جديده","من الصفر","فاضيه"],
+  a:"اضغط **«+ سيرة جديدة»** في تبويب «سيري». سيرتك الحالية تبقى محفوظة.",act:[["ابدأ سيرة جديدة","new"]]},
+ {k:["درجه","فحص","تقييم","السكور","score","النتيجه","مئه","100"],
+  a:"تبويب **«فحص ATS»** يعطيك درجة من 100 حسب 10 معايير: بيانات التواصل، طول الملخص، الأرقام في الإنجازات، الأفعال في بداية النقاط، عدد المهارات وغيرها. كل معيار ناقص مكتوب تحته كيف تكمّله.",act:[["افحص سيرتي","tab:ats"]]},
+ {k:["كلمات مفتاحيه","مفتاحيه","كلمه مفتاحيه","اعلان الوظيفه","الوصف الوظيفي","مطابقه","keywords","job description"],
+  a:"في تبويب **«فحص ATS»** الصق نص إعلان الوظيفة، والتطبيق يطلع لك الكلمات المفتاحية الموجودة في سيرتك والناقصة. حاول توصل لمطابقة 60% أو أكثر، وأضف الكلمات الناقصة فقط إذا كانت تنطبق عليك فعلاً.",act:[["افتح فحص ATS","tab:ats"]]},
+ {k:["لون","الوان","غير اللون","خط","الخط","فونت"],
+  a:"من تبويب **«القالب»** تختار اللون من 15 لوناً، وتختار الخط من القائمة. كل قالب تصميم يأخذ لونه المناسب تلقائياً، وتقدر تغيّره بعدها.",act:[["افتح القالب","tab:design"]]},
+ {k:["انجليزي","عربي","لغه السيره","english","اللغه"],
+  a:"من تبويب **«القالب»** اختر **English** أو **العربية**. التطبيق يغيّر اتجاه السيرة وعناوين الأقسام تلقائياً. للسعودية والخليج، أغلب الشركات الكبيرة تفضّل السيرة بالإنجليزي.",act:[["افتح القالب","tab:design"]]},
+ {k:["ملخص","نبذه","summary","وش اكتب في الملخص"],
+  a:"اكتب 3 إلى 4 أسطر: مسمّاك وعدد سنوات خبرتك، وأبرز إنجاز بالأرقام، والوظيفة اللي تبحث عنها. مثال: «مشرف عمليات بخبرة 6 سنوات… خفّضت الهدر 18%…»."},
+ {k:["انجازات","نقاط","المهام","خبرات","كيف اكتب الخبره","bullets"],
+  a:"ابدأ كل نقطة بفعل (قدت، طورت، خفّضت، Led، Reduced…) وضع رقماً يوضح الأثر: نسبة، عدد، مبلغ، وقت. مثال: «خفّضت تكاليف العمل الإضافي 12% بإعادة تنظيم جداول الورديات». خلّ كل نقطة سطر أو سطرين."},
+ {k:["مراجع","هوايات","تاريخ الميلاد","الجنسيه","العنوان"],
+  a:"المراجع والهوايات وتاريخ الميلاد والجنسية والعنوان تلقاها في تبويب **«المحتوى»**. تظهر في قوالب التصميم الملوّنة، وقوالب ATS تتجاهلها عمداً لأنها ما تفيد في الفرز الآلي.",act:[["افتح المحتوى","tab:content"]]},
+ {k:["ثبت","تثبيت","الشاشه الرئيسيه","تطبيق على الجوال","ايقونه","home screen","install"],
+  a:"**آيفون (Safari):** زر المشاركة ← «إضافة إلى الشاشة الرئيسية». **أندرويد (Chrome):** القائمة ⋮ ← «تثبيت التطبيق». يفتح بعدها كتطبيق مستقل باسم «سيرتي»."},
+ {k:["امان","خصوصيه","يشوف","احد يشوف","سري","privacy","امن"],
+  a:"كل سيرة محفوظة برمز سري طويل وعشوائي، ولا أحد يقدر يفتحها إلا اللي معه رابطها. ما فيه أحد يقدر يتصفح أو يعرض قائمة سير الناس. لا تشارك رابط مكتبتك إلا مع أجهزتك."},
+ {k:["مجاني","فلوس","سعر","اشتراك","كم سعره","بفلوس"],a:"التطبيق مجاني بالكامل، بدون اشتراك أو إعلانات."},
+ {k:["بدون نت","انترنت","اوفلاين","offline","النت"],
+  a:"لو انقطع النت تقدر تكمل الكتابة، والتعديلات تنحفظ على جهازك. أول ما يرجع النت تنرفع نسختها للسحابة."},
+ {k:["استيراد","تصدير","json","نقل البيانات"],
+  a:"من زر **«المزيد»**: «تصدير البيانات» يحفظ ملف لسيرتك، و«استيراد بيانات» يفتحه كسيرة جديدة في «سيري». مفيد كنسخة احتياطية."},
+ {k:["من سواه","من سوا","سوا","سوى","مين سوا","من صممه","صممه","المطور","مطور","من صنع","ياسر","من برمجه","برمجه","صاحب"],a:"التطبيق من إنشاء **ياسر عزان**."},
+ {k:["صفحتين","صفحه وحده","طويله","كم صفحه"],
+  a:"الأفضل صفحة واحدة لمن خبرته أقل من 10 سنوات، وصفحتان كحد أقصى للخبرات الأطول. الخط المتقطع في المعاينة يبيّن نهاية كل صفحة. لو تبي تختصر، جرّب قالب «مضغوط» من تبويب القالب.",act:[["افتح القالب","tab:design"]]}
+];
+const BOT_SUGG=["وش هو التطبيق؟","الفرق بين قالب ATS والملوّن","كيف أحمّل PDF؟","وين تنحفظ سيري؟","كيف أفتح سيرتي من جوالي؟","كيف أكتب الإنجازات؟"];
+const bn=s=>normAr(String(s).toLowerCase()).replace(/[؟?!.,،"'«»()]/g," ").split(/\s+/).filter(Boolean)
+  .map(w=>w.replace(/^(وال|بال|فال|لل|ال)(?=\S{2,})/,"").replace(/^و(?=\S{3,})/,"")).join(" ");
+function botAnswer(q){
+  const n=" "+bn(q)+" ";
+  if(/^\s*(هلا|مرحبا|السلام|اهلا|هاي|hi|hello|صباح|مساء)/.test(n)) return {a:`${new Date().getHours()<12&&new Date().getHours()>=4?"صباح النور":"مساء النور"}! أنا مساعد «سيرتي». اسألني عن القوالب، أو الحفظ، أو التحميل، أو أي شيء يخص التطبيق.`};
+  if(/(شكرا|مشكور|يعطيك العافيه|تسلم|thanks)/.test(n)) return {a:"العفو، بالتوفيق في سيرتك ووظيفتك الجاية."};
+  let best=null,score=0;
+  BOT_KB.forEach(e=>{let sc=0;e.k.forEach(k=>{const kk=bn(k);if(kk&&n.includes(kk))sc+=kk.length>3?2+kk.split(" ").length:1});if(sc>score){score=sc;best=e}});
+  if(best&&score>=2) return best;
+  return {a:"ما فهمت سؤالك تماماً. جرّب تسأل بطريقة ثانية، أو اختر من الأسئلة الشائعة تحت.",sugg:true};
+}
+const md=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`(.+?)`/g,"<code>$1</code>");
+function botSay(html,who,actions){
+  const log=$("#botLog"),m=document.createElement("div");m.className="bmsg "+who;m.innerHTML=html;
+  if(actions&&actions.length){const w=document.createElement("div");w.className="bacts";
+    actions.forEach(([label,act])=>{const b=document.createElement("button");b.type="button";b.className="bact";b.textContent=label;b.dataset.act=act;w.appendChild(b)});m.appendChild(w)}
+  log.appendChild(m);log.scrollTop=log.scrollHeight;
+}
+function botSuggest(){const w=document.createElement("div");w.className="bsugg";
+  BOT_SUGG.forEach(q=>{const b=document.createElement("button");b.type="button";b.textContent=q;b.dataset.q=q;w.appendChild(b)});
+  $("#botLog").appendChild(w);$("#botLog").scrollTop=1e9}
+function botAsk(q){
+  q=q.trim();if(!q)return;botSay(esc(q),"me");
+  const t=document.createElement("div");t.className="bmsg bot typing";t.innerHTML="<i></i><i></i><i></i>";$("#botLog").appendChild(t);$("#botLog").scrollTop=1e9;
+  setTimeout(()=>{t.remove();const r=botAnswer(q);botSay(md(r.a),"bot",r.act);if(r.sugg)botSuggest()},450);
+}
+function botAct(a){
+  if(a.startsWith("tab:")){selectTab(a.slice(4));if(matchMedia("(max-width:900px)").matches)document.querySelector('.pane-switch [data-pane="edit"]').click()}
+  else if(a==="pdf") $("#btnPdf").click();
+  else if(a==="word") $("#btnWord").click();
+  else if(a==="liblink") $("#btnLibLink").click();
+  else if(a==="new") $("#btnLibNew").click();
+  if(matchMedia("(max-width:600px)").matches) botToggle(false);
+}
+let botStarted=false;
+function botToggle(open){
+  const p=$("#botPanel");open=open??p.hidden;p.hidden=!open;$("#botFab").setAttribute("aria-expanded",String(open));
+  if(open&&!botStarted){botStarted=true;
+    const h=new Date().getHours(),m=h>=4&&h<12;
+    botSay(`${m?"صباح الخير":"مساء الخير"} ياسر! أنا <b>مساعد سيرتي</b>. اسألني أي شيء عن التطبيق: القوالب، الحفظ، التحميل، أو كيف تكتب سيرة قوية.`,"bot");botSuggest()}
+  if(open) setTimeout(()=>$("#botIn").focus(),50);
+}
+$("#botFab").addEventListener("click",()=>botToggle());
+$("#botClose").addEventListener("click",()=>botToggle(false));
+$("#botForm").addEventListener("submit",e=>{e.preventDefault();const v=$("#botIn").value;$("#botIn").value="";botAsk(v)});
+$("#botLog").addEventListener("click",e=>{const s=e.target.closest("[data-q]");if(s){botAsk(s.dataset.q);return}const a=e.target.closest(".bact");if(a)botAct(a.dataset.act)});
 document.documentElement.dir="rtl";document.documentElement.lang="ar";
 const incoming=location.hash.slice(1);
 setId(cvId);
