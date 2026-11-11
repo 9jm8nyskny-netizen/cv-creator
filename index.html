@@ -1,11 +1,17 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>منشئ السيرة الذاتية ATS</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600;700&family=Carlito:wght@400;700&display=swap">
 <style>
 /* Layout: two-pane workbench. Editor on the reading side, live A4 paper on a desk-colored pane. */
 /* Single light theme on purpose: airy mint-tinted neutrals, teal accent. */
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
 :root{
   --bg:#f7faf9; --panel:#ffffff; --panel-2:#f9fbfa; --line:#e3eae7; --fg:#1e2a27; --muted:#6a7a75;
   --accent:#2b8577; --accent-ink:#ffffff; --accent-soft:#e6f4f0; --desk:#edf3f1;
@@ -246,6 +252,8 @@ details.sec[open]>summary .chev{transform:rotate(90deg)}
   #cv{box-shadow:none;padding:0!important;width:auto;min-height:0!important}
 }
 </style>
+</head>
+<body>
 
 <header class="topbar">
   <div class="topbar-in">
@@ -841,3 +849,6 @@ if(db){
 if(document.fonts?.ready) document.fonts.ready.then(fit);
 })();
 </script>
+
+</body>
+</html>
