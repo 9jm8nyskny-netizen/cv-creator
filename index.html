@@ -362,17 +362,23 @@ details.sec[open]>summary .chev{transform:rotate(90deg)}
 
 @media print{
   :root{padding:0!important}
+  html,body{height:auto!important;min-height:0!important}
   body{background:#fff!important}
+  .layout{min-height:0!important}
   body::before,.topbar,.editor,.preview-head,.page-mark,.toast{display:none!important}
   .layout{display:block!important}
   .preview{display:block!important;position:static;height:auto;overflow:visible;padding:0;background:none}
   .scaler-wrap{width:auto!important;height:auto!important}
   .scaler{transform:none!important;width:auto}
-  #cv{box-shadow:none;padding:0!important;width:auto;min-height:0!important}
+  #cv{box-shadow:none;padding:0 15mm!important;width:auto;min-height:0!important}
+  #cv.design{padding:0!important}
+  .pf{width:100%;border-collapse:collapse}
+  .pf td{padding:0}
+  .pf-pad{height:14mm}
 }
 </style>
-<style id="pageStyle">@page{size:A4;margin:14mm 15mm}</style>
-<style>html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
+<style id="pageStyle">@page{size:A4;margin:0}</style>
+<style>html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}@media print{html{padding:0!important}}</style>
 </head>
 <body>
 
@@ -898,7 +904,6 @@ function renderCV(){
   cv.className=b.cls;cv.dir=b.dir;cv.lang=state.lang;cv.setAttribute("style",b.style);
   const empty=!state.p.name&&!state.summary.trim()&&!state.exp.some(e=>e.role);
   cv.innerHTML=empty?`<p class="empty-cv">ابدأ بكتابة بياناتك في المحرر وستظهر السيرة هنا مباشرة</p>`:b.html;
-  $("#pageStyle").textContent=isDesign(state.template)?"@page{size:A4;margin:0}":"@page{size:A4;margin:14mm 15mm}";
   fit();
 }
 
@@ -1077,6 +1082,12 @@ document.querySelectorAll(".pane-switch button").forEach(b=>b.addEventListener("
 }));
 
 /* ---------- top actions ---------- */
+/* Page margins come from repeating table header/footer rows, so @page can stay at 0 and the browser prints no URL/date */
+addEventListener("beforeprint",()=>{
+  const cv=$("#cv");if(isDesign(state.template)||cv.querySelector(".pf"))return;
+  cv.innerHTML=`<table class="pf"><thead><tr><td class="pf-pad"></td></tr></thead><tfoot><tr><td class="pf-pad"></td></tr></tfoot><tbody><tr><td>${cv.innerHTML}</td></tr></tbody></table>`;
+});
+addEventListener("afterprint",()=>renderCV());
 $("#btnPdf").addEventListener("click",()=>{
   const prev=document.title;document.title=(state.p.name||"CV").replace(/\s+/g,"_")+"_CV";
   try{window.print()}catch(e){}
