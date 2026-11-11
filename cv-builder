@@ -1,1 +1,843 @@
+<title>منشئ السيرة الذاتية ATS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600;700&family=Carlito:wght@400;700&display=swap">
+<style>
+/* Layout: two-pane workbench. Editor on the reading side, live A4 paper on a desk-colored pane. */
+/* Single light theme on purpose: airy mint-tinted neutrals, teal accent. */
+:root{
+  --bg:#f7faf9; --panel:#ffffff; --panel-2:#f9fbfa; --line:#e3eae7; --fg:#1e2a27; --muted:#6a7a75;
+  --accent:#2b8577; --accent-ink:#ffffff; --accent-soft:#e6f4f0; --desk:#edf3f1;
+  --good:#2f8a55; --warn:#b07210; --bad:#c2453c;
+  --ui:"IBM Plex Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  --radius:12px; color-scheme:light;
+}
 
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:14px;line-height:1.55}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--panel);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--panel)}
+.topbar-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding-block:10px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:10px;margin-inline-end:auto;min-width:0}
+.brand-mark{width:34px;height:34px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:.04em;flex:none}
+.brand h1{font-size:16px;margin:0;font-weight:700;text-wrap:balance}
+.brand small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--panel-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.small{padding:4px 9px;font-size:12.5px}
+.btn.danger{color:var(--bad)}
+.btn svg{width:16px;height:16px;flex:none}
+
+.layout{display:grid;grid-template-columns:minmax(360px,460px) 1fr;min-height:calc(100% - 60px)}
+.editor{background:var(--panel);border-inline-end:1px solid var(--line);min-width:0;padding-block:14px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.preview{position:sticky;top:calc(env(safe-area-inset-top,0px) + 58px);height:calc(100vh - 58px - env(safe-area-inset-top,0px));overflow:auto;background:var(--desk);padding:18px 16px 40px;min-width:0}
+
+.tabs{display:flex;gap:4px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:14px}
+.tab{flex:1;border:0;background:transparent;border-radius:7px;padding:8px 6px;cursor:pointer;color:var(--muted);font-weight:500}
+.tab[aria-selected="true"]{background:var(--panel);color:var(--fg);box-shadow:0 1px 2px rgb(0 0 0 / .08);font-weight:600}
+.tab .badge{display:inline-block;min-width:26px;padding:0 6px;border-radius:20px;font-size:11.5px;background:var(--accent-soft);color:var(--accent);margin-inline-start:4px;font-variant-numeric:tabular-nums}
+
+details.sec{border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;background:var(--panel)}
+details.sec>summary{list-style:none;cursor:pointer;padding:11px 14px;display:flex;align-items:center;gap:10px;font-weight:600}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary .count{color:var(--muted);font-weight:400;font-size:12.5px;margin-inline-start:auto}
+details.sec>summary .chev{width:16px;height:16px;transition:transform .15s;color:var(--muted)}
+details.sec[open]>summary .chev{transform:rotate(90deg)}
+.sec-body{padding:2px 14px 14px;display:grid;gap:10px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:grid;gap:4px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label{font-size:12.5px;color:var(--muted);font-weight:500}
+.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);background:var(--panel-2);border-radius:8px;padding:8px 10px;min-width:0}
+.field textarea{resize:vertical;min-height:84px;line-height:1.6}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);background:var(--panel);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.ltr{direction:ltr;text-align:left}
+
+.item{border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:10px}
+.item-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.item-head strong{font-size:13px;margin-inline-end:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.icon-btn{border:1px solid var(--line);background:var(--panel);border-radius:6px;width:28px;height:28px;display:grid;place-items:center;cursor:pointer;color:var(--muted);flex:none}
+.icon-btn:hover{color:var(--fg)}
+.icon-btn.del:hover{color:var(--bad);border-color:var(--bad)}
+.icon-btn svg{width:14px;height:14px}
+.add{border:1.5px dashed var(--line);background:transparent;border-radius:8px;padding:9px;cursor:pointer;color:var(--accent);font-weight:600}
+.add:hover{border-color:var(--accent);background:var(--accent-soft)}
+
+/* Design tab */
+.group-title{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:6px 0 8px}
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px;margin-bottom:18px}
+.tpl{border:1.5px solid var(--line);border-radius:10px;background:var(--panel);padding:8px;cursor:pointer;text-align:start;display:grid;gap:7px}
+.tpl[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.tpl b{font-size:13px}
+.tpl span{font-size:11.5px;color:var(--muted);line-height:1.4}
+.thumb{aspect-ratio:210/150;max-width:100%;background:#fff;border-radius:4px;border:1px solid #e3e3e3;padding:8px 9px;display:grid;align-content:start;gap:4px}
+.thumb i{display:block;height:3px;background:#c9cdd0;border-radius:2px}
+.thumb .n{height:6px;width:55%;background:#30363a}
+.thumb .h{height:3px;width:34%;background:var(--tc,#30363a);margin-top:4px}
+.thumb .r{height:1px;background:var(--tc,#30363a);opacity:.7}
+.thumb.c .n,.thumb.e .n{justify-self:center}
+.thumb.c .sub,.thumb.e .sub{justify-self:center;width:70%}
+.thumb.e .n{height:7px;width:62%}
+.thumb.m .n{background:var(--tc)}
+.thumb.k{gap:3px}
+.thumb.k .h{border-inline-start:3px solid var(--tc);background:#e8ecee;height:5px;width:100%}
+.thumb.mn .h{background:#8b9196}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.sw{width:32px;height:32px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 0 0 1px var(--line);cursor:pointer}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--fg)}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:18px}
+.seg button{flex:1;border:0;background:var(--panel);padding:8px;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.seg button+button{border-inline-start:1px solid var(--line)}
+.note{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.6}
+
+/* ATS tab */
+.score{display:flex;align-items:center;gap:16px;border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.ring{--v:0;--c:var(--good);width:86px;height:86px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:conic-gradient(var(--c) calc(var(--v)*1%),var(--line) 0)}
+.ring div{width:68px;height:68px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.score h3{margin:0 0 2px;font-size:15px}
+.score p{margin:0;color:var(--muted);font-size:12.5px}
+.checks{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:6px}
+.checks li{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:start;padding:8px 10px;border-radius:8px;background:var(--panel-2)}
+.checks .dot{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;margin-top:2px}
+.checks .ok .dot{background:var(--good)}
+.checks .no .dot{background:var(--warn)}
+.checks b{font-weight:600;font-size:13px}
+.checks small{display:block;color:var(--muted);font-size:12px;line-height:1.45}
+.checks .pts{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px}
+.chip{font-size:12px;padding:3px 9px;border-radius:20px;border:1px solid var(--line)}
+.chip.hit{background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}
+.chip.miss{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 40%,transparent)}
+.kw-bar{height:8px;border-radius:5px;background:var(--line);overflow:hidden;margin:6px 0 2px}
+.kw-bar span{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+
+/* Preview */
+.preview-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;justify-content:space-between;max-width:794px;margin:0 auto 12px;color:var(--muted);font-size:12.5px}
+.scaler-wrap{margin:0 auto;position:relative}
+.scaler{transform-origin:top left;width:794px}
+[dir="rtl"] .scaler{transform-origin:top right}
+.page-mark{position:absolute;inset-inline:0;border-top:1.5px dashed #9aa7ff;pointer-events:none}
+.page-mark span{position:absolute;inset-inline-end:8px;top:-20px;font:600 11px var(--ui);color:#5563d8;background:#fff;padding:1px 6px;border-radius:4px}
+
+.pane-switch{display:none}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));inset-inline-start:50%;transform:translateX(50%);background:#24302d;color:#fff;padding:9px 10px 9px 16px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);box-shadow:0 6px 20px rgb(0 0 0 / .15)}
+.toast.show{opacity:1;pointer-events:auto}
+.toast button{border:0;background:#ffffff22;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:600}
+
+/* Ready-made CVs */
+.ready-intro{margin:0 0 12px;color:var(--muted);font-size:13px}
+.filter{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.filter button{border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:5px 13px;cursor:pointer;font-size:12.5px;color:var(--muted)}
+.filter button[aria-pressed="true"]{background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}
+.ready-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.rcard{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px;cursor:pointer;text-align:start;display:grid;gap:6px;transition:border-color .15s, box-shadow .15s}
+.rcard:hover{border-color:var(--accent);box-shadow:0 4px 14px rgb(43 133 119 / .1)}
+.rcard[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.rcard .top{display:flex;align-items:center;gap:8px}
+.rcard .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.rcard b{font-size:14px;line-height:1.35}
+.rcard .en{font-size:12px;color:var(--muted);direction:ltr;text-align:start}
+.rcard .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.tag{font-size:11px;padding:1px 8px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted)}
+.cloud{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);padding:5px 10px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);white-space:nowrap}
+.cloud i{width:8px;height:8px;border-radius:50%;background:#b8c3bf}
+.cloud[data-s="ok"] i{background:var(--good)}
+.cloud[data-s="saving"] i{background:var(--warn)}
+.cloud[data-s="err"] i{background:var(--bad)}
+.cloud-row{justify-content:flex-start;border-top:1px dashed var(--line)}
+.cloud-row code{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12px;user-select:all}
+.open-code{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.open-code input{border:1px solid var(--line);border-radius:8px;padding:5px 9px;min-width:0;width:min(240px,60vw);background:var(--panel)}
+@media (max-width:900px){.cloud span{display:none}}
+.credit{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:12.5px}
+.credit b{color:var(--accent)}
+
+/* ============ The CV paper (always a white document) ============ */
+#cv{--a:#1f3b57;--cvf:Arial,Helvetica,sans-serif;width:794px;min-height:1123px;padding:57px 60px;background:#fff;color:#1b1b1b;
+  font-family:var(--cvf);font-size:10.5pt;line-height:1.42;box-shadow:0 2px 10px rgb(0 0 0 / .18);position:relative;overflow-wrap:anywhere}
+#cv h1,#cv h2,#cv h3,#cv p,#cv ul{margin:0}
+#cv .cv-head{margin-bottom:12px}
+#cv .cv-name{font-size:21pt;font-weight:700;line-height:1.15;letter-spacing:.005em}
+#cv .cv-title{font-size:11.5pt;margin-top:3px;font-weight:600}
+#cv .cv-contact{font-size:9.5pt;margin-top:6px;color:#333}
+#cv .cv-contact .sep{color:#999;padding:0 3px}
+#cv .cv-sec{margin-top:13px}
+#cv .cv-sec h2{font-size:11pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding-bottom:3px;margin-bottom:7px;border-bottom:1px solid #222}
+#cv[dir="rtl"] .cv-sec h2{letter-spacing:0;text-transform:none;font-size:12pt}
+#cv .cv-item{margin-bottom:9px;break-inside:avoid}
+#cv .cv-row{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+#cv .cv-row strong{font-weight:700}
+#cv .cv-date{white-space:nowrap;font-size:9.5pt;color:#333;flex:none}
+#cv .cv-sub{font-style:italic;color:#333}
+#cv[dir="rtl"] .cv-sub{font-style:normal}
+#cv ul{padding-inline-start:18px;margin-top:3px}
+#cv li{margin-bottom:2px}
+#cv .cv-skills{line-height:1.6}
+#cv .empty-cv{color:#999;text-align:center;padding-top:300px;font-family:var(--ui)}
+
+/* Classic */
+#cv.t-classic .cv-head{text-align:center}
+/* Modern */
+#cv.t-modern .cv-name{color:var(--a);font-size:23pt}
+#cv.t-modern .cv-title{color:#333}
+#cv.t-modern .cv-sec h2{color:var(--a);border-bottom:2px solid var(--a)}
+#cv.t-modern .cv-item strong{color:#111}
+/* Minimal */
+#cv.t-minimal{line-height:1.5}
+#cv.t-minimal .cv-name{font-weight:600;font-size:20pt}
+#cv.t-minimal .cv-title{color:var(--a);font-weight:500}
+#cv.t-minimal .cv-sec{margin-top:17px}
+#cv.t-minimal .cv-sec h2{border:0;color:#666;font-size:9.5pt;letter-spacing:.14em;padding-bottom:0;margin-bottom:6px}
+#cv.t-minimal[dir="rtl"] .cv-sec h2{font-size:11pt;letter-spacing:0}
+#cv.t-minimal .cv-sub{font-style:normal;color:#555}
+/* Executive */
+#cv.t-executive{--cvf:Georgia,"Times New Roman",serif}
+#cv.t-executive .cv-head{text-align:center;border-bottom:3px double #222;padding-bottom:10px}
+#cv.t-executive .cv-name{font-size:25pt;font-weight:400;letter-spacing:.04em;text-transform:uppercase}
+#cv.t-executive[dir="rtl"] .cv-name{letter-spacing:0;font-weight:700}
+#cv.t-executive .cv-title{font-weight:400;font-style:italic;color:var(--a)}
+#cv.t-executive .cv-sec h2{border-bottom:0;border-top:1px solid #444;padding-top:4px;color:var(--a);font-variant:small-caps;text-transform:none;font-size:12.5pt;letter-spacing:.05em}
+/* Compact */
+#cv.t-compact{font-size:9.6pt;line-height:1.35;padding:46px 52px}
+#cv.t-compact .cv-name{font-size:18pt}
+#cv.t-compact .cv-head{margin-bottom:6px}
+#cv.t-compact .cv-sec{margin-top:9px}
+#cv.t-compact .cv-sec h2{border:0;border-inline-start:4px solid var(--a);padding:2px 8px;background:#eef1f4;font-size:10pt;margin-bottom:5px}
+#cv.t-compact .cv-item{margin-bottom:6px}
+
+@media (max-width: 900px){
+  .layout{grid-template-columns:1fr}
+  .pane-switch{display:flex;gap:4px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:4px;width:100%}
+  .pane-switch button{flex:1;border:0;background:transparent;border-radius:7px;padding:7px;cursor:pointer;color:var(--muted)}
+  .pane-switch button[aria-pressed="true"]{background:var(--panel);color:var(--fg);font-weight:600}
+  .preview{position:static;height:auto;min-height:70vh}
+  .layout[data-pane="edit"] .preview{display:none}
+  .layout[data-pane="preview"] .editor{display:none}
+  .editor{border-inline-end:0}
+  .actions .btn .lbl{display:none}
+}
+@media (max-width:420px){.grid2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+@page{size:A4;margin:14mm 15mm}
+@media print{
+  :root{padding:0!important}
+  body{background:#fff!important}
+  body::before,.topbar,.editor,.preview-head,.page-mark,.toast{display:none!important}
+  .layout{display:block!important}
+  .preview{display:block!important;position:static;height:auto;overflow:visible;padding:0;background:none}
+  .scaler-wrap{width:auto!important;height:auto!important}
+  .scaler{transform:none!important;width:auto}
+  #cv{box-shadow:none;padding:0!important;width:auto;min-height:0!important}
+}
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <div class="brand-mark">CV</div>
+      <div><h1>منشئ السيرة الذاتية</h1><small>تم الإنشاء بواسطة ياسر عزان</small></div>
+    </div>
+    <div class="actions">
+      <span class="cloud" id="cloudStatus" data-s="off" title="حالة الحفظ في السحابة"><i></i><span>محفوظة على هذا الجهاز</span></span>
+      <button class="btn primary" id="btnPdf" type="button" title="حفظ كـ PDF من نافذة الطباعة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v3h16v-3"/></svg><span class="lbl">تحميل PDF</span></button>
+      <button class="btn" id="btnText" type="button" title="نسخ نسخة نصية للصقها في نماذج التقديم">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg><span class="lbl">نسخ كنص</span></button>
+      <button class="btn" id="btnMenu" type="button" aria-expanded="false" aria-controls="moreMenu">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg><span class="lbl">المزيد</span></button>
+    </div>
+    <div class="pane-switch" role="group" aria-label="العرض">
+      <button type="button" data-pane="edit" aria-pressed="true">تحرير</button>
+      <button type="button" data-pane="preview" aria-pressed="false">معاينة</button>
+    </div>
+  </div>
+  <div id="moreMenu" hidden style="border-top:1px solid var(--line);background:var(--panel-2)">
+    <div class="topbar-in" style="justify-content:flex-start">
+      <button class="btn small" type="button" id="btnExport">تصدير البيانات (JSON)</button>
+      <label class="btn small" for="importFile" style="cursor:pointer">استيراد بيانات</label>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+      <button class="btn small danger" type="button" id="btnClear">سيرة جديدة فارغة</button>
+    </div>
+    <div class="topbar-in cloud-row" id="cloudRow" hidden>
+      <span class="hint">رمز سيرتك: <code id="cvCode" dir="ltr"></code></span>
+      <button class="btn small" type="button" id="btnLink">نسخ رابط سيرتي</button>
+      <span class="open-code">
+        <label for="openCode" class="hint">فتح سيرة برمزها</label>
+        <input id="openCode" dir="ltr" placeholder="الصق الرمز أو الرابط">
+        <button class="btn small" type="button" id="btnOpenCode">فتح</button>
+      </span>
+    </div>
+  </div>
+</header>
+
+<main class="layout" id="layout" data-pane="edit">
+  <section class="editor" aria-label="المحرر">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-ready" aria-selected="true" data-tab="ready">قوالب جاهزة</button>
+      <button class="tab" role="tab" id="tab-content" aria-selected="false" data-tab="content">المحتوى</button>
+      <button class="tab" role="tab" id="tab-design" aria-selected="false" data-tab="design">القالب</button>
+      <button class="tab" role="tab" id="tab-ats" aria-selected="false" data-tab="ats">فحص ATS <span class="badge" id="tabScore">0</span></button>
+    </div>
+
+    <div id="panel-ready" role="tabpanel">
+      <p class="ready-intro">اختر سيرة جاهزة حسب المهنة، ثم عدّل الأسماء والأرقام في تبويب «المحتوى» لتناسبك. كل البيانات فيها أمثلة.</p>
+      <div class="filter" id="readyFilter">
+        <button type="button" data-f="all" aria-pressed="true">الكل</button>
+        <button type="button" data-f="en" aria-pressed="false">English</button>
+        <button type="button" data-f="ar" aria-pressed="false">عربي</button>
+      </div>
+      <div class="ready-grid" id="readyGrid"></div>
+    </div>
+
+    <div id="panel-content" role="tabpanel" hidden></div>
+
+    <div id="panel-design" role="tabpanel" hidden>
+      <div class="group-title">لغة السيرة</div>
+      <div class="seg" id="langSeg">
+        <button type="button" data-lang="en">English (LTR)</button>
+        <button type="button" data-lang="ar">العربية (RTL)</button>
+      </div>
+      <div class="group-title">القالب</div>
+      <div class="tpl-grid" id="tplGrid"></div>
+      <div class="group-title">لون العناوين</div>
+      <div class="swatches" id="swatches"></div>
+      <div class="field" style="margin-bottom:18px">
+        <label for="fontSel">الخط</label>
+        <select id="fontSel"></select>
+      </div>
+      <p class="note">كل القوالب مبنية بعمود واحد ونص حقيقي دون جداول أو صور أو أيقونات، وبعناوين أقسام قياسية. هذا ما تقرأه أنظمة تتبع المتقدمين (ATS) دون أخطاء.</p>
+    </div>
+
+    <div id="panel-ats" role="tabpanel" hidden>
+      <div class="score">
+        <div class="ring" id="ring"><div id="ringNum">0</div></div>
+        <div><h3 id="scoreTitle">—</h3><p id="scoreSub"></p></div>
+      </div>
+      <ul class="checks" id="checks"></ul>
+      <div class="group-title">مطابقة الكلمات المفتاحية مع إعلان الوظيفة</div>
+      <div class="field">
+        <label for="jd">الصق نص إعلان الوظيفة هنا</label>
+        <textarea id="jd" data-bind="jd" rows="6" placeholder="Paste the job description…"></textarea>
+      </div>
+      <div id="kwOut"></div>
+    </div>
+    <p class="credit">تم الإنشاء بواسطة <b>ياسر عزان</b></p>
+  </section>
+
+  <section class="preview" aria-label="معاينة السيرة">
+    <div class="preview-head">
+      <span id="pageInfo">صفحة واحدة · A4</span>
+      <span>الخطوط المتقطعة تبيّن نهاية كل صفحة</span>
+    </div>
+    <div class="scaler-wrap" id="scalerWrap"><div class="scaler" id="scaler"><article id="cv"></article></div></div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const KEY="ats-cv-builder-v1";
+
+const TEMPLATES=[
+  {id:"classic",name:"كلاسيكي",desc:"رأس في المنتصف وخطوط فاصلة. يناسب كل المجالات.",th:"c"},
+  {id:"modern",name:"عصري",desc:"اسم ملوّن وعناوين بلون مميز.",th:"m"},
+  {id:"minimal",name:"بسيط",desc:"مساحات واسعة وعناوين هادئة.",th:"mn"},
+  {id:"executive",name:"تنفيذي",desc:"خط سيريف رسمي للمناصب القيادية.",th:"e"},
+  {id:"compact",name:"مضغوط",desc:"كثافة أعلى لتبقى في صفحة واحدة.",th:"k"}
+];
+const COLORS=["#1f3b57","#1d5c55","#2f3437","#5a2a6e","#8a2c2c","#1f4fa3"];
+const FONTS=[
+  {id:"arial",name:"Arial",css:'Arial, Helvetica, "Noto Naskh Arabic", sans-serif'},
+  {id:"calibri",name:"Calibri",css:'Calibri, Carlito, Arial, "Noto Naskh Arabic", sans-serif'},
+  {id:"georgia",name:"Georgia",css:'Georgia, "Times New Roman", "Noto Naskh Arabic", serif'},
+  {id:"times",name:"Times New Roman",css:'"Times New Roman", Times, "Noto Naskh Arabic", serif'},
+  {id:"naskh",name:"Noto Naskh Arabic (عربي)",css:'"Noto Naskh Arabic", "Times New Roman", serif'},
+  {id:"plex",name:"IBM Plex Sans Arabic (عربي)",css:'"IBM Plex Sans Arabic", Tahoma, Arial, sans-serif'}
+];
+const LBL={
+  en:{summary:"Professional Summary",exp:"Professional Experience",edu:"Education",skills:"Skills",certs:"Certifications",langs:"Languages",present:"Present"},
+  ar:{summary:"الملخص المهني",exp:"الخبرات العملية",edu:"التعليم",skills:"المهارات",certs:"الشهادات والدورات",langs:"اللغات",present:"حتى الآن"}
+};
+
+const blankExp=()=>({role:"",company:"",location:"",start:"",end:"",bullets:""});
+const blankEdu=()=>({degree:"",school:"",location:"",start:"",end:"",details:""});
+const blankCert=()=>({name:"",issuer:"",year:""});
+
+const SAMPLE_EN={
+  lang:"en",template:"classic",accent:"#1f3b57",font:"arial",
+  p:{name:"Sara Al-Harbi",title:"Operations Supervisor",email:"sara.alharbi@example.com",phone:"+966 50 000 0000",location:"Jeddah, Saudi Arabia",linkedin:"linkedin.com/in/sara-example",website:""},
+  summary:"Operations supervisor with 6 years of experience running multi-branch food and beverage outlets. Cut stock waste by 18% through weekly inventory controls, trained 40+ staff on service standards, and kept customer satisfaction above 92%. Looking to lead operations for a growing hospitality brand.",
+  exp:[
+    {role:"Operations Supervisor",company:"Example Hospitality Group",location:"Jeddah",start:"Mar 2022",end:"Present",bullets:"Supervised daily operations across 4 branches with a combined team of 55 employees\nReduced frozen stock waste by 18% by introducing weekly FIFO inventory audits\nBuilt shift schedules that lowered overtime costs by 12% while keeping service levels\nTrained 40+ new hires on food safety and customer service standards"},
+    {role:"Shift Leader",company:"Example Coffee Co.",location:"Riyadh",start:"Jan 2019",end:"Feb 2022",bullets:"Led shifts of 8–10 baristas serving 600+ customers per day\nImproved average ticket time from 6 to 4 minutes by redesigning the bar workflow\nHandled cash reconciliation and daily sales reports with zero discrepancies over 2 years"}
+  ],
+  edu:[{degree:"Bachelor of Business Administration",school:"King Abdulaziz University",location:"Jeddah",start:"2014",end:"2018",details:"Major: Management"}],
+  skills:"Operations Management, Inventory Control, Staff Training, Scheduling, Food Safety (HACCP), Customer Service, Microsoft Excel, POS Systems, Team Leadership",
+  certs:[{name:"Food Safety Level 2 (HACCP)",issuer:"Highfield",year:"2023"},{name:"Microsoft Excel Associate",issuer:"Microsoft",year:"2021"}],
+  langs:"Arabic (Native), English (Fluent)",
+  jd:"We are looking for an Operations Manager to oversee restaurant branches in Jeddah. Responsibilities include inventory control, staff scheduling, training, budgeting, and ensuring food safety compliance. Requirements: 5+ years in hospitality operations, strong leadership, Excel and POS experience, KPI reporting, customer satisfaction focus."
+};
+const SAMPLE_AR={
+  lang:"ar",template:"modern",accent:"#1d5c55",font:"naskh",
+  p:{name:"سارة الحربي",title:"مشرفة عمليات",email:"sara.alharbi@example.com",phone:"+966 50 000 0000",location:"جدة، المملكة العربية السعودية",linkedin:"linkedin.com/in/sara-example",website:""},
+  summary:"مشرفة عمليات بخبرة 6 سنوات في إدارة فروع الأغذية والمشروبات. خفّضت هدر المخزون بنسبة 18% عبر جرد أسبوعي منتظم، ودرّبت أكثر من 40 موظفاً على معايير الخدمة، وحافظت على رضا العملاء فوق 92%.",
+  exp:[
+    {role:"مشرفة عمليات",company:"مجموعة ضيافة (مثال)",location:"جدة",start:"مارس 2022",end:"حتى الآن",bullets:"أشرفت على العمليات اليومية في 4 فروع بفريق من 55 موظفاً\nخفّضت هدر المخزون المجمد بنسبة 18% بتطبيق جرد أسبوعي بنظام FIFO\nأعددت جداول ورديات قلّلت تكاليف العمل الإضافي بنسبة 12%\nدرّبت أكثر من 40 موظفاً جديداً على سلامة الغذاء وخدمة العملاء"},
+    {role:"قائدة وردية",company:"شركة قهوة (مثال)",location:"الرياض",start:"يناير 2019",end:"فبراير 2022",bullets:"قدت ورديات من 8 إلى 10 باريستا لخدمة أكثر من 600 عميل يومياً\nحسّنت زمن تجهيز الطلب من 6 إلى 4 دقائق بإعادة تصميم سير العمل"}
+  ],
+  edu:[{degree:"بكالوريوس إدارة الأعمال",school:"جامعة الملك عبدالعزيز",location:"جدة",start:"2014",end:"2018",details:"تخصص: الإدارة"}],
+  skills:"إدارة العمليات، مراقبة المخزون، تدريب الموظفين، إعداد الجداول، سلامة الغذاء HACCP، خدمة العملاء، Microsoft Excel، أنظمة نقاط البيع، القيادة",
+  certs:[{name:"شهادة سلامة الغذاء المستوى الثاني (HACCP)",issuer:"Highfield",year:"2023"}],
+  langs:"العربية (اللغة الأم)، الإنجليزية (بطلاقة)",
+  jd:"مطلوب مدير عمليات للإشراف على فروع المطاعم في جدة. المهام: مراقبة المخزون، إعداد جداول الموظفين، التدريب، الميزانية، والالتزام بسلامة الغذاء. المتطلبات: خبرة 5 سنوات في الضيافة، مهارات قيادة، إجادة Excel وأنظمة نقاط البيع، إعداد تقارير مؤشرات الأداء، التركيز على رضا العملاء."
+};
+/* ready-made CVs: compact tuples -> full state */
+function R(o){
+  return {lang:o.lang,template:o.template,accent:o.accent,font:o.font,p:o.p,summary:o.summary,
+    exp:o.exp.map(([role,company,location,start,end,b])=>({role,company,location,start,end,bullets:b.join("\n")})),
+    edu:o.edu.map(([degree,school,location,start,end,details=""])=>({degree,school,location,start,end,details})),
+    skills:o.skills,certs:o.certs.map(([name,issuer,year])=>({name,issuer,year})),langs:o.langs,jd:o.jd||""};
+}
+const READY=[
+ {id:"swe",ar:"مهندس برمجيات",en:"Software Engineer",data:()=>R({lang:"en",template:"modern",accent:"#1f4fa3",font:"calibri",
+  p:{name:"Omar Khalid",title:"Software Engineer",email:"omar.khalid@example.com",phone:"+966 55 000 0000",location:"Riyadh, Saudi Arabia",linkedin:"linkedin.com/in/omar-example",website:"github.com/omar-example"},
+  summary:"Software engineer with 5 years of experience building web applications with JavaScript, React and Node.js. Shipped features used by 200K+ monthly users, cut API response times by 40%, and mentored 3 junior developers. Comfortable owning features from design to production.",
+  exp:[["Senior Software Engineer","Example Tech","Riyadh","Jun 2023","Present",["Led the rebuild of the customer portal in React and TypeScript, raising conversion by 15%","Reduced average API response time by 40% through caching and query optimization","Set up CI/CD pipelines with GitHub Actions, cutting release time from 2 days to 2 hours","Mentored 3 junior developers through code reviews and pair programming"]],
+       ["Software Engineer","Example Solutions","Jeddah","Jul 2020","May 2023",["Built REST APIs in Node.js serving 1M+ requests per day","Developed 25+ reusable UI components adopted by 4 product teams","Wrote unit and integration tests that raised coverage from 35% to 80%"]]],
+  edu:[["BSc Computer Science","King Saud University","Riyadh","2016","2020","GPA 4.4/5"]],
+  skills:"JavaScript, TypeScript, React, Node.js, REST APIs, SQL, PostgreSQL, Firebase, Git, Docker, CI/CD, Agile/Scrum",
+  certs:[["AWS Certified Developer – Associate","Amazon Web Services","2024"]],langs:"Arabic (Native), English (Professional)"})},
+ {id:"acc",ar:"محاسب أول",en:"Senior Accountant",data:()=>R({lang:"en",template:"classic",accent:"#2f3437",font:"arial",
+  p:{name:"Noura Al-Qahtani",title:"Senior Accountant",email:"noura.alqahtani@example.com",phone:"+966 54 000 0000",location:"Jeddah, Saudi Arabia",linkedin:"linkedin.com/in/noura-example",website:""},
+  summary:"Accountant with 7 years of experience in general ledger, month-end close and VAT compliance for retail and hospitality companies. Shortened month-end close from 10 to 6 days and led a clean external audit two years running.",
+  exp:[["Senior Accountant","Example Retail Co.","Jeddah","Feb 2021","Present",["Shortened month-end close from 10 to 6 working days by standardizing reconciliations","Prepared quarterly VAT returns for ZATCA with zero penalties since 2021","Managed accounts payable for 300+ suppliers worth SAR 45M annually","Coordinated the year-end external audit with no material findings"]],
+       ["Accountant","Example Trading","Jeddah","Sep 2017","Jan 2021",["Reconciled 12 bank accounts monthly and resolved discrepancies within 48 hours","Built Excel cost reports that identified SAR 1.2M in annual savings","Processed payroll for 150 employees accurately and on time"]]],
+  edu:[["Bachelor of Accounting","King Abdulaziz University","Jeddah","2013","2017"]],
+  skills:"General Ledger, Month-End Close, Bank Reconciliation, VAT (ZATCA), IFRS, Accounts Payable, Accounts Receivable, Financial Reporting, SAP, Oracle, Advanced Excel, Payroll",
+  certs:[["IFRS Certificate","ACCA","2022"],["SOCPA Fellowship (in progress)","SOCPA","2025"]],langs:"Arabic (Native), English (Fluent)"})},
+ {id:"mkt",ar:"أخصائي تسويق رقمي",en:"Digital Marketing Specialist",data:()=>R({lang:"en",template:"minimal",accent:"#5a2a6e",font:"calibri",
+  p:{name:"Lama Al-Otaibi",title:"Digital Marketing Specialist",email:"lama.alotaibi@example.com",phone:"+966 56 000 0000",location:"Jeddah, Saudi Arabia",linkedin:"linkedin.com/in/lama-example",website:""},
+  summary:"Digital marketer with 4 years of experience in paid social, content and SEO for food and retail brands. Grew an Instagram audience from 12K to 85K and managed SAR 600K in yearly ad spend at a 4.2x return on ad spend.",
+  exp:[["Digital Marketing Specialist","Example Brands","Jeddah","Mar 2022","Present",["Ran paid campaigns on Meta, Snapchat and TikTok with a SAR 600K yearly budget at 4.2x ROAS","Grew Instagram audience from 12K to 85K in 18 months with a reels-first content plan","Increased organic website traffic by 70% through SEO content and technical fixes","Produced monthly performance reports for leadership using Google Analytics 4"]],
+       ["Marketing Coordinator","Example Agency","Riyadh","Jan 2020","Feb 2022",["Coordinated 30+ campaigns for 8 clients from brief to launch","Wrote Arabic and English copy for social media, email and landing pages","Managed influencer collaborations that drove 2,000+ app downloads"]]],
+  edu:[["Bachelor of Marketing","Effat University","Jeddah","2015","2019"]],
+  skills:"Paid Social, Meta Ads, Google Ads, TikTok Ads, SEO, Content Strategy, Copywriting (Arabic/English), Google Analytics 4, Canva, Email Marketing, A/B Testing",
+  certs:[["Google Ads Search Certification","Google","2024"],["Meta Certified Digital Marketing Associate","Meta","2023"]],langs:"Arabic (Native), English (Fluent)"})},
+ {id:"nurse",ar:"ممرضة",en:"Registered Nurse",data:()=>R({lang:"en",template:"modern",accent:"#1d5c55",font:"arial",
+  p:{name:"Fatimah Al-Zahrani",title:"Registered Nurse",email:"fatimah.alzahrani@example.com",phone:"+966 53 000 0000",location:"Jeddah, Saudi Arabia",linkedin:"",website:""},
+  summary:"Registered nurse with 6 years of experience in emergency and medical-surgical care. Cut medication errors on the unit by 30% through a double-check protocol and precepted 10 new nurses.",
+  exp:[["Staff Nurse – Emergency Department","Example Hospital","Jeddah","Apr 2021","Present",["Triaged and treated 40+ patients per shift in a 30-bed emergency department","Reduced medication errors by 30% by leading a bedside double-check protocol","Precepted 10 newly hired nurses through their orientation","Documented care accurately in the electronic health record (Cerner)"]],
+       ["Staff Nurse – Medical-Surgical Ward","Example Medical Center","Riyadh","Jan 2018","Mar 2021",["Delivered post-operative care to 6–8 patients per shift","Educated patients and families on discharge plans, lowering readmissions by 12%","Supported infection-control audits with 98% compliance"]]],
+  edu:[["Bachelor of Science in Nursing","King Saud bin Abdulaziz University for Health Sciences","Riyadh","2013","2017"]],
+  skills:"Patient Assessment, Triage, Medication Administration, IV Therapy, Wound Care, BLS, ACLS, Infection Control, Electronic Health Records (Cerner), Patient Education",
+  certs:[["SCFHS Registered Nurse License","SCFHS","2018"],["ACLS","American Heart Association","2025"],["BLS","American Heart Association","2025"]],langs:"Arabic (Native), English (Fluent)"})},
+ {id:"hr",ar:"أخصائي موارد بشرية",en:"HR Specialist",data:()=>R({lang:"en",template:"executive",accent:"#1f3b57",font:"georgia",
+  p:{name:"Khalid Al-Ghamdi",title:"Human Resources Specialist",email:"khalid.alghamdi@example.com",phone:"+966 59 000 0000",location:"Jeddah, Saudi Arabia",linkedin:"linkedin.com/in/khalid-example",website:""},
+  summary:"HR specialist with 5 years of experience in recruitment, onboarding, payroll and Saudization compliance for multi-branch companies. Cut time-to-hire from 35 to 21 days and moved employee files to a digital HR system.",
+  exp:[["HR Specialist","Example Hospitality Group","Jeddah","Jan 2022","Present",["Recruited 120+ employees per year across 10 branches, cutting time-to-hire from 35 to 21 days","Kept the company in the Nitaqat Platinum band through monthly Saudization tracking","Moved 400 employee files to a digital HR system, reducing document requests by 60%","Handled GOSI, Qiwa and Mudad updates with zero compliance penalties"]],
+       ["HR Coordinator","Example Services","Jeddah","Jun 2019","Dec 2021",["Ran onboarding for 15–20 new hires per month","Prepared monthly attendance and payroll inputs for 250 employees","Organized 12 training programs per year with 90% attendance"]]],
+  edu:[["Bachelor of Human Resource Management","University of Jeddah","Jeddah","2015","2019"]],
+  skills:"Recruitment, Onboarding, Payroll, Saudi Labor Law, GOSI, Qiwa, Mudad, Nitaqat, Employee Relations, HRIS, Performance Management, Microsoft Excel",
+  certs:[["aPHRi","HRCI","2023"]],langs:"Arabic (Native), English (Fluent)"})},
+ {id:"grad",ar:"خريج جديد (هندسة صناعية)",en:"Fresh Graduate",data:()=>R({lang:"en",template:"compact",accent:"#1f4fa3",font:"calibri",
+  p:{name:"Abdullah Al-Shehri",title:"Industrial Engineering Graduate",email:"abdullah.alshehri@example.com",phone:"+966 50 111 0000",location:"Jeddah, Saudi Arabia",linkedin:"linkedin.com/in/abdullah-example",website:""},
+  summary:"Industrial engineering graduate with internship experience in process improvement and data analysis. Cut a packaging line's changeover time by 22% during a 10-week internship. Seeking an entry-level operations or supply chain role.",
+  exp:[["Operations Intern","Example Manufacturing","Jeddah","Jun 2025","Aug 2025",["Reduced changeover time on a packaging line by 22% using SMED analysis","Built an Excel dashboard tracking daily output and downtime for 3 lines","Presented improvement findings to the plant manager and 6 supervisors"]],
+       ["Volunteer Lead","University Engineering Club","Jeddah","Sep 2023","May 2025",["Organized 5 workshops attended by 300+ students","Managed a team of 12 volunteers and a SAR 15K event budget"]]],
+  edu:[["BSc Industrial Engineering","King Abdulaziz University","Jeddah","2021","2025","GPA 4.6/5 · Graduation project: warehouse layout optimization"]],
+  skills:"Process Improvement, Lean Six Sigma, Data Analysis, Advanced Excel, Power BI, Python (basic), AutoCAD, Project Management, Teamwork, Presentation Skills",
+  certs:[["Lean Six Sigma Yellow Belt","Example Institute","2025"]],langs:"Arabic (Native), English (Fluent)"})},
+ {id:"ops-en",ar:"مشرف عمليات (مطاعم)",en:"Operations Supervisor",data:()=>clone(SAMPLE_EN)},
+ {id:"ops-ar",ar:"مشرفة عمليات (مطاعم)",en:"",data:()=>clone(SAMPLE_AR)},
+ {id:"acc-ar",ar:"محاسب عام",en:"",data:()=>R({lang:"ar",template:"classic",accent:"#2f3437",font:"naskh",
+  p:{name:"محمد العمري",title:"محاسب عام",email:"m.alamri@example.com",phone:"+966 55 222 0000",location:"جدة، المملكة العربية السعودية",linkedin:"",website:""},
+  summary:"محاسب بخبرة 5 سنوات في القيود اليومية والتسويات البنكية وإقرارات ضريبة القيمة المضافة. قلّصت مدة الإقفال الشهري من 9 إلى 5 أيام عمل، وأعددت إقرارات الزكاة والضريبة دون أي غرامات.",
+  exp:[["محاسب عام","شركة تجارية (مثال)","جدة","يناير 2022","حتى الآن",["قلّصت مدة الإقفال الشهري من 9 إلى 5 أيام عمل بتوحيد نماذج التسويات","أعددت إقرارات ضريبة القيمة المضافة الربعية دون أي غرامات","أدرت حسابات أكثر من 200 مورد بقيمة 30 مليون ريال سنوياً","راجعت تقارير المصروفات ووفّرت 8% من التكاليف التشغيلية"]],
+       ["محاسب","مؤسسة تجارية (مثال)","مكة المكرمة","سبتمبر 2019","ديسمبر 2021",["أجريت التسويات البنكية لـ 6 حسابات شهرياً","أعددت مسيرات الرواتب لـ 80 موظفاً","أدخلت القيود اليومية على نظام ERP بدقة عالية"]]],
+  edu:[["بكالوريوس المحاسبة","جامعة أم القرى","مكة المكرمة","2015","2019"]],
+  skills:"القيود اليومية، التسويات البنكية، الإقفال الشهري، ضريبة القيمة المضافة، الزكاة، المعايير الدولية IFRS، الذمم الدائنة والمدينة، الرواتب، SAP، Excel المتقدم",
+  certs:[["شهادة المحاسب الإداري CMA (قيد الدراسة)","IMA","2025"]],langs:"العربية (اللغة الأم)، الإنجليزية (جيد جداً)"})},
+ {id:"hr-ar",ar:"أخصائية موارد بشرية",en:"",data:()=>R({lang:"ar",template:"executive",accent:"#1f3b57",font:"naskh",
+  p:{name:"ريم الشهري",title:"أخصائية موارد بشرية",email:"reem.alshehri@example.com",phone:"+966 56 333 0000",location:"جدة، المملكة العربية السعودية",linkedin:"linkedin.com/in/reem-example",website:""},
+  summary:"أخصائية موارد بشرية بخبرة 4 سنوات في التوظيف والتهيئة وشؤون الموظفين والتوطين. قلّصت مدة التوظيف من 30 إلى 18 يوماً، وحافظت على المنشأة في النطاق البلاتيني.",
+  exp:[["أخصائية موارد بشرية","مجموعة مطاعم (مثال)","جدة","مارس 2022","حتى الآن",["وظّفت أكثر من 100 موظف سنوياً لـ 8 فروع وقلّصت مدة التوظيف من 30 إلى 18 يوماً","تابعت نسب التوطين شهرياً وحافظت على النطاق البلاتيني في نطاقات","حدّثت بيانات الموظفين في التأمينات الاجتماعية وقوى ومدد دون مخالفات","أعددت تقارير الحضور والانصراف الشهرية لـ 300 موظف"]],
+       ["منسقة موارد بشرية","شركة خدمات (مثال)","جدة","يوليو 2020","فبراير 2022",["نسّقت برامج تهيئة لـ 15 موظفاً جديداً شهرياً","نظّمت 10 برامج تدريبية سنوياً بنسبة حضور 90%","أرشفت ملفات 200 موظف إلكترونياً"]]],
+  edu:[["بكالوريوس إدارة الموارد البشرية","جامعة جدة","جدة","2016","2020"]],
+  skills:"التوظيف، التهيئة، نظام العمل السعودي، التأمينات الاجتماعية GOSI، منصة قوى، منصة مدد، نطاقات، شؤون الموظفين، تقييم الأداء، Excel",
+  certs:[["شهادة الموارد البشرية aPHRi","HRCI","2023"]],langs:"العربية (اللغة الأم)، الإنجليزية (جيد)"})},
+ {id:"cs-ar",ar:"خدمة عملاء وكاشير",en:"",data:()=>R({lang:"ar",template:"compact",accent:"#1d5c55",font:"plex",
+  p:{name:"فهد الزهراني",title:"ممثل خدمة عملاء",email:"fahad.alzahrani@example.com",phone:"+966 50 444 0000",location:"جدة، المملكة العربية السعودية",linkedin:"",website:""},
+  summary:"ممثل خدمة عملاء بخبرة 3 سنوات في قطاع التجزئة والمقاهي. خدمت أكثر من 150 عميلاً يومياً بتقييم رضا 4.8 من 5، وأتقن أنظمة نقاط البيع ومعالجة الشكاوى.",
+  exp:[["ممثل خدمة عملاء وكاشير","مقهى (مثال)","جدة","فبراير 2023","حتى الآن",["خدمت أكثر من 150 عميلاً يومياً بتقييم رضا 4.8 من 5","أغلقت الصندوق يومياً دون فروقات طوال 18 شهراً","حللت 95% من شكاوى العملاء في اليوم نفسه","رفعت مبيعات المنتجات الإضافية بنسبة 10% بالاقتراح على العملاء"]],
+       ["موظف مبيعات","متجر تجزئة (مثال)","جدة","يونيو 2021","يناير 2023",["حققت المستهدف الشهري للمبيعات 10 أشهر متتالية","رتّبت المعروضات وأجريت الجرد الأسبوعي"]]],
+  edu:[["دبلوم إدارة مكتبية","الكلية التقنية بجدة","جدة","2019","2021"]],
+  skills:"خدمة العملاء، أنظمة نقاط البيع، التعامل مع النقد، معالجة الشكاوى، البيع الإضافي، العمل الجماعي، التواصل، الجرد",
+  certs:[["شهادة صحية سارية","البلدية","2026"]],langs:"العربية (اللغة الأم)، الإنجليزية (متوسط)"})}
+];
+const TPL_NAME=Object.fromEntries(TEMPLATES.map(t=>[t.id,t.name]));
+let readyFilter="all",currentReady=null;
+function renderReady(){
+  $("#readyGrid").innerHTML=READY.map(r=>{const d=r.data();if(readyFilter!=="all"&&d.lang!==readyFilter)return"";
+    return `<button type="button" class="rcard" data-ready="${r.id}" aria-current="${currentReady===r.id}">
+      <div class="top"><span class="dot" style="background:${d.accent}"></span><b>${esc(r.ar)}</b></div>
+      ${r.en?`<div class="en">${esc(r.en)}</div>`:""}
+      <div class="meta"><span class="tag">${d.lang==="ar"?"عربي":"English"}</span><span class="tag">قالب ${TPL_NAME[d.template]}</span></div></button>`}).join("");
+}
+const EMPTY=()=>({lang:"en",template:"classic",accent:"#1f3b57",font:"arial",p:{name:"",title:"",email:"",phone:"",location:"",linkedin:"",website:""},summary:"",exp:[blankExp()],edu:[blankEdu()],skills:"",certs:[],langs:"",jd:""});
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+let state=null;
+try{const raw=localStorage.getItem(KEY); if(raw) state=JSON.parse(raw);}catch(e){}
+if(!state||!state.p) state=clone(SAMPLE_EN);
+state=Object.assign(EMPTY(),state);
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function toast(msg,undo){
+  const t=$("#toast");t.innerHTML="";const sp=document.createElement("span");sp.textContent=msg;t.appendChild(sp);
+  if(undo){const b=document.createElement("button");b.type="button";b.textContent="تراجع";b.onclick=()=>{undo();t.classList.remove("show")};t.appendChild(b)}
+  t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),undo?6000:2600);
+}
+
+/* ---------- Content editor ---------- */
+const ICON={
+  chev:'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 6l-6 6 6 6"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 15l6-6 6 6"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>',
+  del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>'
+};
+function fld(id,label,bind,opts={}){
+  const v=esc(opts.value??getPath(bind));
+  const cls="field"+(opts.full?" full":"");
+  const dir=opts.ltr?' class="ltr" dir="ltr"':'';
+  const ph=opts.ph?` placeholder="${esc(opts.ph)}"`:"";
+  const data=opts.list?`data-list="${opts.list}" data-i="${opts.i}" data-f="${opts.f}"`:`data-bind="${bind}"`;
+  const ctl=opts.area?`<textarea id="${id}" ${data} rows="${opts.rows||4}"${ph}${dir}>${v}</textarea>`:`<input id="${id}" ${data} value="${v}"${ph}${dir} type="${opts.type||"text"}">`;
+  return `<div class="${cls}"><label for="${id}">${label}</label>${ctl}${opts.hint?`<p class="hint">${opts.hint}</p>`:""}</div>`;
+}
+function getPath(path){return path.split(".").reduce((o,k)=>o?.[k],state)??""}
+function setPath(path,val){const ks=path.split(".");let o=state;ks.slice(0,-1).forEach(k=>o=o[k]);o[ks.at(-1)]=val}
+
+const LISTS={
+  exp:{title:"الخبرات العملية",add:"+ إضافة خبرة",blank:blankExp,head:it=>it.role||it.company||"خبرة جديدة",
+    fields:[["role","المسمى الوظيفي",{full:true}],["company","الجهة / الشركة"],["location","المدينة"],["start","من",{ph:"Jan 2022"}],["end","إلى",{ph:"Present"}],
+      ["bullets","الإنجازات والمهام (سطر لكل نقطة)",{full:true,area:true,rows:5,hint:"ابدأ كل سطر بفعل (Led, Reduced…) وأضف أرقاماً: نسبة، عدد، مبلغ."}]]},
+  edu:{title:"التعليم",add:"+ إضافة مؤهل",blank:blankEdu,head:it=>it.degree||it.school||"مؤهل جديد",
+    fields:[["degree","الدرجة / التخصص",{full:true}],["school","الجامعة / المعهد",{full:true}],["location","المدينة"],["start","من",{ph:"2014"}],["end","إلى",{ph:"2018"}],["details","تفاصيل (اختياري)",{ph:"GPA 4.5/5 · Honors"}]]},
+  certs:{title:"الشهادات والدورات",add:"+ إضافة شهادة",blank:blankCert,head:it=>it.name||"شهادة جديدة",
+    fields:[["name","اسم الشهادة",{full:true}],["issuer","الجهة المانحة"],["year","السنة"]]}
+};
+function listHTML(key){
+  const L=LISTS[key],arr=state[key];
+  const items=arr.map((it,i)=>`<div class="item">
+    <div class="item-head"><strong>${esc(L.head(it))}</strong>
+      <button class="icon-btn" type="button" data-act="up" data-key="${key}" data-i="${i}" aria-label="تحريك لأعلى" ${i===0?"disabled":""}>${ICON.up}</button>
+      <button class="icon-btn" type="button" data-act="down" data-key="${key}" data-i="${i}" aria-label="تحريك لأسفل" ${i===arr.length-1?"disabled":""}>${ICON.down}</button>
+      <button class="icon-btn del" type="button" data-act="del" data-key="${key}" data-i="${i}" aria-label="حذف">${ICON.del}</button></div>
+    <div class="grid2">${L.fields.map(([f,lab,o={}])=>fld(`${key}-${i}-${f}`,lab,null,{...o,list:key,i,f,value:it[f]})).join("")}</div></div>`).join("");
+  return `${items}<button class="add" type="button" data-act="add" data-key="${key}">${L.add}</button>`;
+}
+function sec(id,title,body,open,count=""){
+  return `<details class="sec" id="sec-${id}" ${open?"open":""}><summary>${ICON.chev}${title}<span class="count" id="count-${id}">${count}</span></summary><div class="sec-body" id="body-${id}">${body}</div></details>`;
+}
+function renderEditor(){
+  const openSet=new Set([...document.querySelectorAll("details.sec[open]")].map(d=>d.id));
+  const first=!document.querySelector("details.sec");
+  const isOpen=id=>first?id==="personal":openSet.has("sec-"+id);
+  $("#panel-content").innerHTML=
+    sec("personal","البيانات الشخصية",`<div class="grid2">
+      ${fld("p-name","الاسم الكامل","p.name",{full:true})}
+      ${fld("p-title","المسمى المهني المستهدف","p.title",{full:true,ph:"Operations Supervisor"})}
+      ${fld("p-email","البريد الإلكتروني","p.email",{ltr:true,type:"email"})}
+      ${fld("p-phone","الجوال","p.phone",{ltr:true,type:"tel"})}
+      ${fld("p-location","المدينة والدولة","p.location")}
+      ${fld("p-linkedin","LinkedIn","p.linkedin",{ltr:true,ph:"linkedin.com/in/…"})}
+      ${fld("p-website","موقع / معرض أعمال (اختياري)","p.website",{ltr:true,full:true})}
+    </div><p class="hint">لا تضف صورة شخصية: أغلب أنظمة ATS لا تقرؤها وقد تُربك ترتيب النص.</p>`,isOpen("personal"))+
+    sec("summary","الملخص المهني",fld("summary","3 إلى 4 أسطر عن خبرتك وأبرز إنجاز وما تبحث عنه","summary",{full:true,area:true,rows:5}),isOpen("summary"))+
+    sec("exp","الخبرات العملية",listHTML("exp"),isOpen("exp"),state.exp.length)+
+    sec("edu","التعليم",listHTML("edu"),isOpen("edu"),state.edu.length)+
+    sec("skills","المهارات",fld("skills","افصل بين المهارات بفاصلة","skills",{full:true,area:true,rows:4,hint:"استخدم نفس الكلمات الموجودة في إعلان الوظيفة."}),isOpen("skills"))+
+    sec("certs","الشهادات والدورات",listHTML("certs"),isOpen("certs"),state.certs.length)+
+    sec("langs","اللغات",fld("langs","مثال: Arabic (Native), English (Fluent)","langs",{full:true}),isOpen("langs"));
+}
+
+/* ---------- Design panel ---------- */
+function renderDesign(){
+  $("#tplGrid").innerHTML=TEMPLATES.map(t=>`<button type="button" class="tpl" data-tpl="${t.id}" aria-pressed="${state.template===t.id}">
+    <div class="thumb ${t.th}" style="--tc:${state.accent}"><i class="n"></i><i class="sub"></i><i class="h"></i>${t.th==="c"||t.th==="m"?'<i class="r"></i>':""}<i></i><i style="width:85%"></i><i class="h"></i><i></i><i style="width:70%"></i></div>
+    <b>${t.name}</b><span>${t.desc}</span></button>`).join("");
+  $("#swatches").innerHTML=COLORS.map(c=>`<button type="button" class="sw" data-color="${c}" style="background:${c}" aria-label="لون ${c}" aria-pressed="${state.accent===c}"></button>`).join("");
+  $("#fontSel").innerHTML=FONTS.map(f=>`<option value="${f.id}" ${state.font===f.id?"selected":""}>${f.name}</option>`).join("");
+  document.querySelectorAll("#langSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===state.lang)));
+}
+
+/* ---------- CV render ---------- */
+const lines=s=>String(s||"").split(/\n+/).map(x=>x.replace(/^[\s•\-*–·]+/,"").trim()).filter(Boolean);
+const splitList=s=>String(s||"").split(/[,،\n]+/).map(x=>x.trim()).filter(Boolean);
+const dates=(a,b)=>[a,b].filter(Boolean).map(esc).join(" – ");
+function renderCV(){
+  const s=state,t=LBL[s.lang],p=s.p,cv=$("#cv");
+  cv.className="t-"+s.template;
+  cv.dir=s.lang==="ar"?"rtl":"ltr";cv.lang=s.lang;
+  cv.style.setProperty("--a",s.accent);
+  if(s.template!=="executive"||s.font!=="arial") cv.style.setProperty("--cvf",(FONTS.find(f=>f.id===s.font)||FONTS[0]).css);
+  else cv.style.removeProperty("--cvf");
+  const contact=[p.location,p.phone,p.email,p.linkedin,p.website].filter(Boolean).map(esc).join('<span class="sep"> | </span>');
+  const exp=s.exp.filter(e=>e.role||e.company||e.bullets);
+  const edu=s.edu.filter(e=>e.degree||e.school);
+  const certs=s.certs.filter(c=>c.name);
+  const skills=splitList(s.skills),langs=splitList(s.langs);
+  let h="";
+  if(p.name||p.title||contact) h+=`<header class="cv-head">${p.name?`<h1 class="cv-name">${esc(p.name)}</h1>`:""}${p.title?`<p class="cv-title">${esc(p.title)}</p>`:""}${contact?`<p class="cv-contact">${contact}</p>`:""}</header>`;
+  if(s.summary.trim()) h+=`<section class="cv-sec"><h2>${t.summary}</h2><p>${esc(s.summary.trim())}</p></section>`;
+  if(exp.length) h+=`<section class="cv-sec"><h2>${t.exp}</h2>${exp.map(e=>`<div class="cv-item">
+    <div class="cv-row"><strong>${esc(e.role)}</strong><span class="cv-date">${dates(e.start,e.end)}</span></div>
+    ${e.company||e.location?`<div class="cv-row cv-sub"><span>${esc(e.company)}</span><span>${esc(e.location)}</span></div>`:""}
+    ${lines(e.bullets).length?`<ul>${lines(e.bullets).map(b=>`<li>${esc(b)}</li>`).join("")}</ul>`:""}</div>`).join("")}</section>`;
+  if(edu.length) h+=`<section class="cv-sec"><h2>${t.edu}</h2>${edu.map(e=>`<div class="cv-item">
+    <div class="cv-row"><strong>${esc(e.degree)}</strong><span class="cv-date">${dates(e.start,e.end)}</span></div>
+    <div class="cv-row cv-sub"><span>${esc(e.school)}${e.details?` · ${esc(e.details)}`:""}</span><span>${esc(e.location)}</span></div></div>`).join("")}</section>`;
+  if(skills.length) h+=`<section class="cv-sec"><h2>${t.skills}</h2><p class="cv-skills">${skills.map(esc).join(s.lang==="ar"?"، ":", ")}</p></section>`;
+  if(certs.length) h+=`<section class="cv-sec"><h2>${t.certs}</h2><ul>${certs.map(c=>`<li>${esc(c.name)}${c.issuer?` – ${esc(c.issuer)}`:""}${c.year?` (${esc(c.year)})`:""}</li>`).join("")}</ul></section>`;
+  if(langs.length) h+=`<section class="cv-sec"><h2>${t.langs}</h2><p>${langs.map(esc).join(s.lang==="ar"?"، ":", ")}</p></section>`;
+  cv.innerHTML=h||`<p class="empty-cv">ابدأ بكتابة بياناتك في المحرر وستظهر السيرة هنا مباشرة</p>`;
+  fit();
+}
+
+/* ---------- scale preview & page markers ---------- */
+const PAGE_H=1123;
+function fit(){
+  const wrap=$("#scalerWrap"),scaler=$("#scaler"),cv=$("#cv"),pane=$(".preview");
+  wrap.querySelectorAll(".page-mark").forEach(m=>m.remove());
+  cv.style.minHeight=PAGE_H+"px";
+  const h=cv.offsetHeight,pages=Math.max(1,Math.ceil((h-2)/PAGE_H));
+  cv.style.minHeight=pages*PAGE_H+"px";
+  const avail=pane.clientWidth-32,sc=Math.min(1,avail/794);
+  scaler.style.transform=`scale(${sc})`;
+  wrap.style.width=794*sc+"px";wrap.style.height=pages*PAGE_H*sc+"px";
+  for(let k=1;k<pages;k++){const m=document.createElement("div");m.className="page-mark";m.style.top=k*PAGE_H*sc+"px";m.innerHTML=`<span>صفحة ${k+1}</span>`;wrap.appendChild(m)}
+  $("#pageInfo").textContent=(pages===1?"صفحة واحدة":pages===2?"صفحتان":pages+" صفحات")+" · A4";
+}
+if("ResizeObserver" in window) new ResizeObserver(()=>fit()).observe($(".preview")); else addEventListener("resize",fit);
+
+/* ---------- ATS analysis ---------- */
+const VERBS_EN="led lead managed manage developed built created designed implemented improved increased reduced decreased delivered launched coordinated organized supervised trained achieved analyzed negotiated streamlined optimized established oversaw directed handled prepared resolved maintained planned executed generated ensured collaborated conducted drove spearheaded cut saved grew won mentored automated introduced restructured processed monitored recruited administered reviewed boosted accelerated expanded secured initiated produced owned ran headed engineered transformed facilitated served supported completed audited".split(" ");
+const VERBS_AR="قدت قاد أدرت ادرت إدارة اداره طورت تطوير أنشأت انشأت أسست اسست صممت تصميم نفذت تنفيذ حسنت حسّنت تحسين رفعت زدت زيادة خفضت خفّضت قللت قلّلت تقليل أطلقت اطلقت نسقت تنسيق نظمت أشرفت اشرفت الإشراف اشراف دربت درّبت تدريب حققت تحقيق حللت تحليل تفاوضت بنيت أعددت اعددت إعداد وضعت عملت تابعت متابعة ساهمت قمت توليت أتممت راجعت مراجعة".split(" ");
+const STOP=new Set(("the and for with you your our are will this that from have has had not but all any can who what when where which their them they into over such than then there these those been being were was its also more most other some only very per each both about able ability work working team role job position candidate candidates looking seeking required requirements requirement responsibilities responsibility include includes including plus preferred must should would could strong excellent good great years year experience experienced knowledge skills skill using use new etc well within across ensure ensuring based minimum least join company environment opportunity "+
+  "في من على إلى الى عن مع هذا هذه ذلك التي الذي الذين أو او ثم كل بعض غير بين عند حتى قد لا ما لم لن هو هي هم نحن أن ان إن كان كانت يكون تكون مطلوب نبحث عن المهام المتطلبات خبرة سنوات سنة مهارات مهارة القدرة العمل الوظيفة المرشح يجب لدى لديه ضمن خلال").split(" "));
+function normAr(s){return s.replace(/[ً-ْـ]/g,"").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي")}
+function tokens(text){
+  return normAr(String(text).toLowerCase()).split(/[^\p{L}\p{N}+#]+/u).map(w=>w.replace(/^(وال|بال|لل|ال|و)(?=\p{Script=Arabic}{3,})/u,"")).filter(w=>w.length>=3&&!STOP.has(w)&&!/^\d+$/.test(w));
+}
+function cvPlain(){
+  const s=state,t=LBL[s.lang],p=s.p,out=[];
+  if(p.name) out.push(p.name.toUpperCase());
+  if(p.title) out.push(p.title);
+  const c=[p.location,p.phone,p.email,p.linkedin,p.website].filter(Boolean).join(" | "); if(c) out.push(c);
+  const S=(h,body)=>{if(body) out.push("",h.toUpperCase(),body)};
+  S(t.summary,s.summary.trim());
+  S(t.exp,s.exp.filter(e=>e.role||e.company).map(e=>[[e.role,e.company].filter(Boolean).join(" — ")+(e.start||e.end?` (${[e.start,e.end].filter(Boolean).join(" – ")})`:"")+(e.location?`, ${e.location}`:""),...lines(e.bullets).map(b=>"• "+b)].join("\n")).join("\n\n"));
+  S(t.edu,s.edu.filter(e=>e.degree||e.school).map(e=>[e.degree,e.school,e.details,[e.start,e.end].filter(Boolean).join(" – ")].filter(Boolean).join(", ")).join("\n"));
+  S(t.skills,splitList(s.skills).join(", "));
+  S(t.certs,s.certs.filter(c=>c.name).map(c=>"• "+[c.name,c.issuer,c.year].filter(Boolean).join(", ")).join("\n"));
+  S(t.langs,splitList(s.langs).join(", "));
+  return out.join("\n");
+}
+function renderATS(){
+  const s=state,p=s.p,bullets=s.exp.flatMap(e=>lines(e.bullets));
+  const words=t=>String(t).trim().split(/\s+/).filter(Boolean).length;
+  const sumW=words(s.summary);
+  const verbSet=new Set((s.lang==="ar"?VERBS_AR:VERBS_EN).map(v=>normAr(v.toLowerCase())));
+  const startsVerb=b=>{const w=normAr(b.toLowerCase()).split(/\s+/)[0].replace(/^و/,"");return verbSet.has(w)||(s.lang==="ar"?false:/ed$/.test(w))};
+  const verbPct=bullets.length?bullets.filter(startsVerb).length/bullets.length:0;
+  const numPct=bullets.length?bullets.filter(b=>/[\d٠-٩%]/.test(b)).length/bullets.length:0;
+  const longB=bullets.filter(b=>words(b)>32).length;
+  const emailOk=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email.trim());
+  const skillsN=splitList(s.skills).length;
+  const checks=[
+    {ok:!!(p.name.trim()&&emailOk&&p.phone.trim()),pts:15,t:"بيانات التواصل كاملة",h:"الاسم، بريد إلكتروني صحيح، ورقم جوال."},
+    {ok:!!p.title.trim(),pts:5,t:"مسمى مهني واضح",h:"اكتب المسمى نفسه الوارد في إعلان الوظيفة قدر الإمكان."},
+    {ok:sumW>=30&&sumW<=120,pts:10,t:"ملخص مهني بطول مناسب",h:`الطول الحالي ${sumW} كلمة. المناسب بين 30 و120.`},
+    {ok:s.exp.some(e=>e.role&&lines(e.bullets).length>=2),pts:10,t:"خبرات مع نقاط إنجاز",h:"كل خبرة تحتاج مسمى ونقطتين على الأقل."},
+    {ok:verbPct>=.6,pts:10,t:"النقاط تبدأ بأفعال",h:`${Math.round(verbPct*100)}% من النقاط تبدأ بفعل. الهدف 60% أو أكثر.`},
+    {ok:numPct>=.3,pts:15,t:"إنجازات بالأرقام",h:`${Math.round(numPct*100)}% من النقاط فيها رقم أو نسبة. الهدف 30% أو أكثر.`},
+    {ok:skillsN>=6,pts:10,t:"قسم مهارات كافٍ",h:`عدد المهارات ${skillsN}. يفضَّل 6 إلى 15.`},
+    {ok:s.edu.some(e=>e.degree||e.school),pts:10,t:"قسم التعليم موجود",h:"أضف أعلى مؤهل على الأقل."},
+    {ok:bullets.length>0&&longB===0,pts:5,t:"نقاط مختصرة",h:longB?`${longB} نقطة أطول من 32 كلمة.`:"كل نقطة سطر أو سطران."},
+    {ok:true,pts:10,t:"تنسيق مقروء للأنظمة",h:"عمود واحد، نص حقيقي، بلا جداول أو صور، عناوين قياسية."}
+  ];
+  const score=checks.reduce((a,c)=>a+(c.ok?c.pts:0),0);
+  const ring=$("#ring");ring.style.setProperty("--v",score);
+  ring.style.setProperty("--c",score>=80?"var(--good)":score>=55?"var(--warn)":"var(--bad)");
+  $("#ringNum").textContent=score;$("#tabScore").textContent=score;
+  $("#scoreTitle").textContent=score>=80?"جاهزة للتقديم":score>=55?"جيدة وتحتاج تحسينات":"تحتاج عملاً إضافياً";
+  $("#scoreSub").textContent=`${checks.filter(c=>c.ok).length} من ${checks.length} معايير مكتملة`;
+  $("#checks").innerHTML=checks.map(c=>`<li class="${c.ok?"ok":"no"}"><span class="dot">${c.ok?"✓":"!"}</span><div><b>${c.t}</b><small>${c.h}</small></div><span class="pts">${c.ok?c.pts:0}/${c.pts}</span></li>`).join("");
+
+  const jd=s.jd.trim(),out=$("#kwOut");
+  if(!jd){out.innerHTML=`<p class="hint" style="margin-top:8px">بعد لصق الإعلان ستظهر الكلمات المفتاحية الموجودة في سيرتك والناقصة منها.</p>`;return}
+  const freq=new Map();tokens(jd).forEach(w=>freq.set(w,(freq.get(w)||0)+1));
+  const kws=[...freq.entries()].sort((a,b)=>b[1]-a[1]).slice(0,24).map(x=>x[0]);
+  const cvTok=new Set(tokens(cvPlain()));const cvJoined=normAr(cvPlain().toLowerCase());
+  const hit=kws.filter(k=>cvTok.has(k)||cvJoined.includes(k)),miss=kws.filter(k=>!hit.includes(k));
+  const pct=kws.length?Math.round(hit.length/kws.length*100):0;
+  out.innerHTML=`<div style="display:flex;justify-content:space-between;margin-top:10px;font-size:13px"><b>نسبة المطابقة</b><b style="font-variant-numeric:tabular-nums">${pct}%</b></div>
+    <div class="kw-bar"><span style="width:${pct}%"></span></div>
+    <p class="hint">الهدف 60% أو أكثر. أضف الكلمات الناقصة فقط إذا كانت تنطبق عليك فعلاً.</p>
+    ${hit.length?`<div class="group-title" style="margin-top:12px">موجودة في سيرتك (${hit.length})</div><div class="chips">${hit.map(k=>`<span class="chip hit">${esc(k)}</span>`).join("")}</div>`:""}
+    ${miss.length?`<div class="group-title" style="margin-top:12px">ناقصة (${miss.length})</div><div class="chips">${miss.map(k=>`<span class="chip miss">${esc(k)}</span>`).join("")}</div>`:""}`;
+}
+
+/* ---------- Firebase cloud save ---------- */
+const FB_CFG={apiKey:"AIzaSyDQgvcZq6rnN_Abq3lqOmKE9HOdz3_SXOI",authDomain:"cv-creator-d1fd7.firebaseapp.com",projectId:"cv-creator-d1fd7",
+  storageBucket:"cv-creator-d1fd7.firebasestorage.app",messagingSenderId:"635954713116",appId:"1:635954713116:web:57d73f22a021a45957c5d9"};
+const ID_KEY="ats-cv-builder-id";
+let db=null;
+try{if(window.firebase){firebase.initializeApp(FB_CFG);db=firebase.firestore()}}catch(e){db=null}
+const genId=()=>{const c="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789",a=new Uint32Array(24);crypto.getRandomValues(a);return [...a].map(n=>c[n%c.length]).join("")};
+const validId=s=>/^[A-Za-z0-9]{20,40}$/.test(s||"");
+let cvId=null;try{cvId=localStorage.getItem(ID_KEY)}catch(e){}
+if(!validId(cvId)) cvId=genId();
+function setId(id){cvId=id;try{localStorage.setItem(ID_KEY,id)}catch(e){};$("#cvCode").textContent=id;try{history.replaceState(null,"","#"+id)}catch(e){}}
+function cloudStatus(s,txt){const el=$("#cloudStatus");el.dataset.s=s;el.querySelector("span").textContent=txt}
+let ctmr;
+function cloudSchedule(){
+  if(!db)return;clearTimeout(ctmr);cloudStatus("saving","جارٍ الحفظ…");
+  ctmr=setTimeout(()=>{
+    const data=JSON.parse(JSON.stringify(state));data.updatedAt=firebase.firestore.FieldValue.serverTimestamp();
+    db.collection("cvs").doc(cvId).set(data).then(()=>cloudStatus("ok","محفوظة في السحابة")).catch(()=>cloudStatus("err","تعذّر الحفظ في السحابة"));
+  },1500);
+}
+function cloudOpen(id){
+  if(!db||!validId(id)){toast("الرمز غير صحيح");return}
+  cloudStatus("saving","جارٍ الفتح…");
+  db.collection("cvs").doc(id).get().then(snap=>{
+    if(!snap.exists){cloudStatus("err","لم تُعثر على السيرة");toast("لا توجد سيرة بهذا الرمز");return}
+    const d=snap.data();delete d.updatedAt;state=Object.assign(EMPTY(),d);currentReady=null;setId(id);refreshAll(false);
+    cloudStatus("ok","محفوظة في السحابة");toast("فُتحت السيرة المحفوظة");
+  }).catch(()=>{cloudStatus("err","تعذّر الاتصال");toast("تعذّر الاتصال بقاعدة البيانات")});
+}
+
+/* ---------- updates ---------- */
+let tmr;
+function schedule(){clearTimeout(tmr);tmr=setTimeout(()=>{renderCV();renderATS();save();cloudSchedule()},120)}
+function refreshAll(sync=true){renderReady();renderEditor();renderDesign();renderCV();renderATS();$("#jd").value=state.jd;save();if(sync)cloudSchedule()}
+
+document.addEventListener("input",e=>{
+  const el=e.target;
+  if(el.dataset.bind){setPath(el.dataset.bind,el.value);schedule()}
+  else if(el.dataset.list){
+    state[el.dataset.list][+el.dataset.i][el.dataset.f]=el.value;
+    const head=el.closest(".item")?.querySelector(".item-head strong");
+    if(head) head.textContent=LISTS[el.dataset.list].head(state[el.dataset.list][+el.dataset.i]);
+    schedule();
+  }
+});
+$("#panel-content").addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const key=b.dataset.key,arr=state[key],i=+b.dataset.i;
+  if(b.dataset.act==="add") arr.push(LISTS[key].blank());
+  if(b.dataset.act==="del") arr.splice(i,1);
+  if(b.dataset.act==="up"&&i>0) [arr[i-1],arr[i]]=[arr[i],arr[i-1]];
+  if(b.dataset.act==="down"&&i<arr.length-1) [arr[i+1],arr[i]]=[arr[i],arr[i+1]];
+  $("#body-"+key).innerHTML=listHTML(key);$("#count-"+key).textContent=arr.length;
+  if(b.dataset.act==="add"){const items=$("#body-"+key).querySelectorAll(".item");items[items.length-1]?.querySelector("input")?.focus()}
+  schedule();
+});
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",String(x===t)));
+  ["ready","content","design","ats"].forEach(id=>$("#panel-"+id).hidden=id!==t.dataset.tab);
+}));
+$("#panel-design").addEventListener("click",e=>{
+  const tp=e.target.closest("[data-tpl]"),sw=e.target.closest("[data-color]"),lg=e.target.closest("[data-lang]");
+  if(tp) state.template=tp.dataset.tpl;
+  if(sw) state.accent=sw.dataset.color;
+  if(lg){state.lang=lg.dataset.lang; if(lg.dataset.lang==="ar"&&["arial","calibri","georgia","times"].includes(state.font)) state.font="naskh"; if(lg.dataset.lang==="en"&&["naskh","plex"].includes(state.font)) state.font="arial";}
+  if(tp||sw||lg){renderDesign();renderCV();renderATS();save()}
+});
+$("#fontSel").addEventListener("change",e=>{state.font=e.target.value;renderCV();save()});
+document.querySelectorAll(".pane-switch button").forEach(b=>b.addEventListener("click",()=>{
+  $("#layout").dataset.pane=b.dataset.pane;
+  document.querySelectorAll(".pane-switch button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  if(b.dataset.pane==="preview") requestAnimationFrame(fit);
+}));
+
+/* ---------- top actions ---------- */
+$("#btnPdf").addEventListener("click",()=>{
+  const prev=document.title;document.title=(state.p.name||"CV").replace(/\s+/g,"_")+"_CV";
+  try{window.print()}catch(e){}
+  setTimeout(()=>{document.title=prev},500);
+  toast("اختر «حفظ كـ PDF» في نافذة الطباعة. إن لم تظهر، افتح ملف HTML من جهازك.");
+});
+function copyText(txt,okMsg){
+  const fallback=()=>{const ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast(okMsg)}catch(e){toast("تعذّر النسخ")}ta.remove()};
+  if(navigator.clipboard?.writeText) navigator.clipboard.writeText(txt).then(()=>toast(okMsg),fallback); else fallback();
+}
+$("#btnText").addEventListener("click",()=>copyText(cvPlain(),"نُسخت السيرة كنص عادي"));
+$("#btnMenu").addEventListener("click",()=>{const m=$("#moreMenu");m.hidden=!m.hidden;$("#btnMenu").setAttribute("aria-expanded",String(!m.hidden))});
+$("#readyFilter").addEventListener("click",e=>{
+  const b=e.target.closest("[data-f]");if(!b)return;readyFilter=b.dataset.f;
+  document.querySelectorAll("#readyFilter button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderReady();
+});
+$("#readyGrid").addEventListener("click",e=>{
+  const c=e.target.closest("[data-ready]");if(!c)return;
+  const r=READY.find(x=>x.id===c.dataset.ready),prev=clone(state),prevId=currentReady;
+  state=r.data();currentReady=r.id;refreshAll();
+  if(matchMedia("(max-width:900px)").matches) document.querySelector('.pane-switch [data-pane="preview"]').click();
+  toast(`حُمّلت سيرة «${r.ar}». عدّلها من تبويب المحتوى.`,()=>{state=prev;currentReady=prevId;refreshAll();toast("استُعيدت بياناتك السابقة")});
+});
+$("#btnExport").addEventListener("click",()=>{
+  const json=JSON.stringify(state,null,2);
+  try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([json],{type:"application/json"}));a.download=(state.p.name||"cv").replace(/\s+/g,"_")+"-cv-data.json";document.body.appendChild(a);a.click();a.remove();}catch(e){}
+  copyText(json,"صُدّرت البيانات ونُسخت إلى الحافظة");
+});
+$("#importFile").addEventListener("change",e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.p) throw 0;state=Object.assign(EMPTY(),d);refreshAll();toast("استُوردت البيانات")}catch(err){toast("الملف غير صالح. اختر ملف JSON صدّرته من هذا التطبيق.")}};
+  r.readAsText(f);e.target.value="";
+});
+let clearArm=false;
+$("#btnClear").addEventListener("click",e=>{
+  const b=e.currentTarget;
+  if(!clearArm){clearArm=true;b.textContent="اضغط مرة أخرى للتأكيد";setTimeout(()=>{clearArm=false;b.textContent="سيرة جديدة فارغة"},3000);return}
+  clearArm=false;b.textContent="سيرة جديدة فارغة";state=EMPTY();currentReady=null;setId(genId());refreshAll(false);
+  cloudStatus(db?"off":"off","سيرة جديدة");toast("بدأت سيرة جديدة برمز جديد. السيرة السابقة ما زالت محفوظة برمزها.");
+});
+$("#btnLink").addEventListener("click",()=>copyText(location.href.split("#")[0]+"#"+cvId,"نُسخ رابط سيرتك. افتحه من أي جهاز لتكمل التعديل."));
+$("#btnOpenCode").addEventListener("click",()=>{const v=$("#openCode").value.trim();cloudOpen(v.includes("#")?v.split("#").pop():v)});
+
+document.documentElement.dir="rtl";document.documentElement.lang="ar";
+const incoming=location.hash.slice(1);
+setId(cvId);
+refreshAll(false);
+if(db){
+  $("#cloudRow").hidden=false;
+  cloudStatus("ok","الحفظ السحابي مفعّل");
+  if(validId(incoming)&&incoming!==cvId) cloudOpen(incoming);
+}else{
+  cloudStatus("off","محفوظة على هذا الجهاز");
+}
+if(document.fonts?.ready) document.fonts.ready.then(fit);
+})();
+</script>
